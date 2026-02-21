@@ -1,0 +1,10 @@
+root = true
+
+[*.{json,ts,tsx,scss,js,mjs}]
+charset = utf8
+end_of_line = LF
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+quote_type = double

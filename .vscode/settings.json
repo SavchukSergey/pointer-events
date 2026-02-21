@@ -1,0 +1,35 @@
+{
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "files.exclude": {
+    "dist": true,
+    "coverage": true,
+    "node_modules": true
+  },
+  "files.watcherExclude": {
+    "dist/**": true,
+    "coverage/**": true,
+    "node_modules/**": true
+  },
+  "files.eol": "\n",
+  "[typescript]": {
+    "files.eol": "\n",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  },
+  "[html]": {
+    "files.eol": "\n",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  },
+  "[json]": {
+    "files.eol": "\n",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  },
+  "[scss]": {
+    "files.eol": "\n",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+  }
+}

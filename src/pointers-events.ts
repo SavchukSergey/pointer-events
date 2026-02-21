@@ -1,0 +1,335 @@
+import { filter, fromEvent, Subject, Subscription } from "rxjs";
+import { Matrix3x3 } from "./matrix3x3";
+import { Multitouch } from "./multitouch";
+import {
+  EMPTY_STATE,
+  IPointerState,
+  type IPointersState,
+} from "./pointers-state";
+import { Vec2F } from "./vec2f";
+
+const cancel$ = fromEvent<KeyboardEvent>(window, "keydown").pipe(
+  filter((kb) => kb.key === "Escape"),
+);
+
+/**
+ * Recognises tap, double-tap, long-tap, and drag gestures from a stream
+ * of pointer states emitted by {@link createPointersState}.
+ *
+ * @typeParam TDragData - Application-specific payload attached to drag operations.
+ */
+export class PointersEvents<TDragData> {
+  /** Emits when a double-tap gesture is recognised. */
+  public readonly doubleTaps$ = new Subject<IPointerTapEvent>();
+  /** Emits when a single-tap gesture is recognised. */
+  public readonly taps$ = new Subject<IPointerTapEvent>();
+  /** Emits when a long-tap gesture is recognised. */
+  public readonly longTaps$ = new Subject<IPointerTapEvent>();
+  /** Emits when a drag gesture begins and the consumer can attach data. Consumer has to set drag data in the event otherwise drag&drop considered unsupзorted. */
+  public readonly dragStart$ = new Subject<IPointerDragStartEvent<TDragData>>();
+  /** Emits on every pointer move during an active drag. */
+  public readonly dragMove$ = new Subject<IPointerDragEvent<TDragData>>();
+  /** Emits when all pointers are released during an active drag. */
+  public readonly dragEnd$ = new Subject<IPointerDropEvent<TDragData>>();
+  /** Emits when a drag is cancelled (e.g. by pressing Escape). */
+  public readonly dragCancel$ = new Subject<
+    IPointerDragCancelEvent<TDragData>
+  >();
+
+  private readonly _edges: [
+    IPointersState,
+    IPointersState,
+    IPointersState,
+    IPointersState,
+  ] = [EMPTY_STATE, EMPTY_STATE, EMPTY_STATE, EMPTY_STATE];
+  private _doubleTapTimeout: number | undefined;
+  private _longTapTimeout: number | undefined;
+  private _dragState: IDragState<TDragData> | undefined;
+
+  private readonly DOUBLE_TAP_TIME_WINDOW = 300;
+  private readonly LONG_TAP_TIME_WINDOW = 1000;
+  private readonly DRAG_THRESHOLD = 10;
+
+  /**
+   * Resets the edge history buffer to empty states.
+   */
+  private resetEdgesHistory(): void {
+    this._edges[0] = EMPTY_STATE;
+    this._edges[1] = EMPTY_STATE;
+    this._edges[2] = EMPTY_STATE;
+    this._edges[3] = EMPTY_STATE;
+  }
+
+  /**
+   * Cancels the pending double-tap timeout, if any.
+   */
+  private cancelDoubleTapTimeout(): void {
+    if (this._doubleTapTimeout) {
+      clearTimeout(this._doubleTapTimeout);
+      this._doubleTapTimeout = undefined;
+    }
+  }
+
+  /**
+   * Cancels the pending long-tap timeout, if any.
+   */
+  private cancelLongTapTimeout(): void {
+    if (this._longTapTimeout) {
+      clearTimeout(this._longTapTimeout);
+      this._longTapTimeout = undefined;
+    }
+  }
+
+  /**
+   * Resets all internal gesture state (edges, timeouts).
+   */
+  private reset(): void {
+    this.resetEdgesHistory();
+    this.cancelDoubleTapTimeout();
+    this.cancelLongTapTimeout();
+  }
+
+  /**
+   * Pushes a new state onto the edge history buffer, shifting older entries out.
+   * @param state - The pointer state to record.
+   */
+  private pushEdge(state: IPointersState): void {
+    const edgesHistory = this._edges;
+    edgesHistory[0] = edgesHistory[1];
+    edgesHistory[1] = edgesHistory[2];
+    edgesHistory[2] = edgesHistory[3];
+    edgesHistory[3] = state;
+  }
+
+  /**
+   * Attempts to match a double-tap pattern from the edge history.
+   * If matched, emits on {@link doubleTaps$} and resets state.
+   * @returns `true` if a double-tap was recognised, `false` otherwise.
+   */
+  private matchDoubleTap(): boolean {
+    const edgesHistory = this._edges;
+    const raisingEdge = edgesHistory[2];
+    const fallingEdge = edgesHistory[3];
+    // double check edges (as we may have EMPTY_STATEs)
+    if (
+      edgesHistory[0].active &&
+      !edgesHistory[1].active &&
+      raisingEdge.active &&
+      !fallingEdge.active
+    ) {
+      const duration = edgesHistory[3].timeStamp - edgesHistory[0].timeStamp;
+      if (duration <= this.DOUBLE_TAP_TIME_WINDOW) {
+        const event: IPointerTapEvent = {
+          pointerId: edgesHistory[0].added[0].pointerId,
+          point: fallingEdge.removed[0].point,
+          presision: edgesHistory[0].added[0].precision,
+          timeStamp: fallingEdge.timeStamp,
+        };
+        this.reset();
+        this.doubleTaps$.next(event);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Attempts to match a single-tap pattern from the edge history.
+   * If matched, schedules a deferred emit on {@link taps$} to allow
+   * double-tap detection to take priority.
+   */
+  private matchTap(): void {
+    const edgesHistory = this._edges;
+    const raisingEdge = edgesHistory[2];
+    const fallingEdge = edgesHistory[3];
+    if (edgesHistory[2].active && !edgesHistory[3].active) {
+      const distance = fallingEdge.removed[0].clientDistance;
+      if (distance < this.DRAG_THRESHOLD) {
+        const timeSpent = fallingEdge.timeStamp - raisingEdge.timeStamp;
+        const timeLeft = this.DOUBLE_TAP_TIME_WINDOW - timeSpent;
+        this.cancelDoubleTapTimeout();
+        this._doubleTapTimeout = setTimeout(() => {
+          this.reset();
+          this.taps$.next({
+            pointerId: raisingEdge.added[0].pointerId,
+            point: fallingEdge.removed[0].point,
+            presision: raisingEdge.added[0].precision,
+            timeStamp: fallingEdge.timeStamp,
+          });
+        }, timeLeft) as unknown as number;
+      }
+    }
+  }
+
+  /**
+   * Synchronises a {@link Multitouch} instance with the latest pointer state
+   * by applying removals, additions, and moves in order.
+   * @param multitouch - The multitouch tracker to update.
+   * @param state - The current pointer state.
+   */
+  private updateMultitouch(multitouch: Multitouch, state: IPointersState): void {
+    for (const item of state.removed) {
+      multitouch.untouch(item.pointerId);
+    }
+    for (const item of state.added) {
+      multitouch.touch(item.pointerId, item.point);
+    }
+    for (const item of state.changed) {
+      multitouch.move(item.pointerId, item.point);
+    }
+  }
+
+  /**
+   * Processes a new pointer state snapshot and emits the appropriate gesture
+   * events (tap, double-tap, long-tap, drag, drop, or cancel).
+   * @param state - The latest pointer state to process.
+   */
+  public accept(state: IPointersState): void {
+    let activeDistance = 0;
+    for (const pointerId in state.pointers) {
+      activeDistance += state.pointers[pointerId]?.clientDistance || 0;
+    }
+    if (activeDistance > this.DRAG_THRESHOLD) {
+      this.cancelLongTapTimeout();
+      if (!this._dragState) {
+        const pointer = state.changed[0];
+        const multitouch = new Multitouch().touch(
+          pointer.pointerId,
+          pointer.start.point,
+        );
+        const dragStart: IPointerDragStartEvent<TDragData> = {
+          pointer,
+          multitouch,
+        };
+        this.dragStart$.next(dragStart);
+        if (dragStart.data) {
+          this.reset();
+          const data = dragStart.data;
+          const cancelSubscription = cancel$.subscribe(() => {
+            cancelSubscription.unsubscribe();
+            this._dragState = undefined;
+            this.dragCancel$.next({
+              data,
+            });
+          });
+          this._dragState = {
+            payload: {
+              data,
+              multitouch,
+              cancelSubscription,
+            },
+          };
+        } else {
+          this._dragState = {
+            payload: undefined, // client does not support drag&drop
+          };
+        }
+      }
+    }
+    if (this._dragState?.payload) {
+      this.updateMultitouch(this._dragState.payload.multitouch, state);
+
+      if (state.active) {
+        this.dragMove$.next({
+          pointers: state,
+          data: this._dragState.payload.data,
+          matrix: this._dragState.payload.multitouch.eval(),
+        });
+      } else {
+        this.dragEnd$.next({
+          data: this._dragState.payload.data,
+          matrix: this._dragState.payload.multitouch.eval(),
+        });
+        this._dragState.payload.cancelSubscription.unsubscribe();
+        this._dragState = undefined;
+      }
+
+      return;
+    }
+
+    const edges = this._edges;
+    if (state.active > 1) {
+      this.resetEdgesHistory();
+    } else if (edges[3].active !== state.active) {
+      //single pointer edge detection
+      this.pushEdge(state);
+
+      if (state.active) {
+        this.cancelLongTapTimeout();
+        this._longTapTimeout = setTimeout(() => {
+          this.reset();
+          this.longTaps$.next({
+            pointerId: state.added[0].pointerId,
+            point: state.added[0].point,
+            presision: state.added[0].precision,
+            timeStamp: state.timeStamp,
+          });
+        }, this.LONG_TAP_TIME_WINDOW) as unknown as number;
+      }
+
+      if (!state.active) {
+        if (!this.matchDoubleTap()) {
+          this.matchTap();
+        }
+      }
+    }
+  }
+}
+
+/** Describes a tap gesture event (single, double, or long). */
+export interface IPointerTapEvent {
+  /** The identifier of the pointer that performed the tap. */
+  readonly pointerId: string;
+  /** The timestamp of the tap event. */
+  readonly timeStamp: number;
+  /** The position where the tap occurred. */
+  readonly point: Vec2F;
+  /** The precision level of the input device. */
+  readonly presision: "low" | "normal";
+}
+
+/** Emitted at the start of a drag gesture; consumers may set `data` to opt in. */
+export interface IPointerDragStartEvent<TDragData> {
+  /** The pointer that initiated the drag. */
+  readonly pointer: IPointerState;
+  /** The multitouch tracker for this drag session. */
+  readonly multitouch: Multitouch;
+  /** Set this to attach application-specific drag data and accept the drag. */
+  data?: TDragData;
+}
+
+/** Emitted on every pointer move during an active drag. */
+export interface IPointerDragEvent<TDragData> {
+  /** The current pointer state snapshot. */
+  readonly pointers: IPointersState;
+  /** The accumulated affine transformation matrix. */
+  readonly matrix: Matrix3x3;
+  /** The application-specific drag data. */
+  readonly data: TDragData;
+}
+
+/** Emitted when a drag is cancelled (e.g. by pressing Escape). */
+export interface IPointerDragCancelEvent<TDragData> {
+  /** The application-specific drag data. */
+  readonly data: TDragData;
+}
+
+/** Emitted when all pointers are released, completing the drag. */
+export interface IPointerDropEvent<TDragData> {
+  /** The final affine transformation matrix. */
+  readonly matrix: Matrix3x3;
+  /** The application-specific drag data. */
+  readonly data: TDragData;
+}
+
+/** Internal drag state wrapper. */
+interface IDragState<TDragState> {
+  readonly payload: IDragStatePayload<TDragState> | undefined;
+}
+
+/** Internal drag state payload holding data, multitouch, and the cancel subscription. */
+interface IDragStatePayload<TDragState> {
+  readonly data: TDragState;
+  readonly multitouch: Multitouch;
+  readonly cancelSubscription: Subscription;
+}
