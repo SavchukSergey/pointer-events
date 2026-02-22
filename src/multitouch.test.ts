@@ -1,4 +1,4 @@
-import { expectMatrix3x3, expectVec2F } from "./math.testing";
+import { expectMatrix3x3, expectVec2F } from "./asserts";
 import { Matrix3x3 } from "./matrix3x3";
 import { Multitouch } from "./multitouch";
 import { Vec2F } from "./vec2f";
@@ -101,5 +101,31 @@ describe("Multitouch", () => {
 
   it("should evaluate 1-touch shift", () => {
     testMultitouch([new Vec2F(10, 10), new Vec2F(30, 20)]);
+  });
+
+  it("should ignore a 4th touch", () => {
+    const multitouch = new Multitouch();
+    multitouch.touch("A", new Vec2F(0, 0));
+    multitouch.touch("B", new Vec2F(10, 0));
+    multitouch.touch("C", new Vec2F(0, 10));
+    multitouch.touch("D", new Vec2F(10, 10)); // should be ignored
+
+    multitouch.move("A", new Vec2F(5, 5));
+    multitouch.move("B", new Vec2F(15, 5));
+    multitouch.move("C", new Vec2F(5, 15));
+
+    const matrix = multitouch.eval();
+    // D was ignored, so the transform only uses A, B, C
+    expectVec2F(matrix.mulV2(new Vec2F(0, 0)), new Vec2F(5, 5));
+    expectVec2F(matrix.mulV2(new Vec2F(10, 0)), new Vec2F(15, 5));
+    expectVec2F(matrix.mulV2(new Vec2F(0, 10)), new Vec2F(5, 15));
+  });
+
+  it("should handle untouch when no touches are active", () => {
+    const multitouch = new Multitouch();
+    // Calling untouch before any touch should not throw
+    multitouch.untouch("A");
+    const matrix = multitouch.eval();
+    expectMatrix3x3(matrix, Matrix3x3.identity);
   });
 });

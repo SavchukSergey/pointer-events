@@ -23,7 +23,7 @@ const emptyList: readonly IPointerState[] = [];
  * @param timeStamp - The event timestamp.
  * @returns A new pointer state with the added pointers.
  */
-export function add(
+export function addPointerState(
   state: IPointersState,
   curadd: readonly IPointerChangeEvent[],
   timeStamp: number,
@@ -70,34 +70,32 @@ export function add(
  * @param timeStamp - The event timestamp.
  * @returns A new pointer state with the changed pointers.
  */
-export function change(
+export function changePointerState(
   state: IPointersState,
   curchange: readonly IPointerChangeEvent[],
   timeStamp: number,
 ): IPointersState {
   const pointers = { ...state.pointers };
   const changed: IPointerState[] = [];
-  if (curchange) {
-    for (const change of curchange) {
-      const oldPointer = pointers[change.pointerId];
-      if (oldPointer) {
-        const changedPointer: IPointerState = {
-          pointerId: oldPointer.pointerId,
-          point: change.point,
-          timeStamp: timeStamp,
-          start: oldPointer.start,
-          prev: {
-            point: oldPointer.point,
-            timeStamp: oldPointer.timeStamp,
-          },
-          precision: change.precision,
-          clientDistance:
-            oldPointer.clientDistance +
-            change.point.sub(oldPointer.point).length(),
-        };
-        pointers[change.pointerId] = changedPointer;
-        changed.push(changedPointer);
-      }
+  for (const change of curchange) {
+    const oldPointer = pointers[change.pointerId];
+    if (oldPointer) {
+      const changedPointer: IPointerState = {
+        pointerId: oldPointer.pointerId,
+        point: change.point,
+        timeStamp: timeStamp,
+        start: oldPointer.start,
+        prev: {
+          point: oldPointer.point,
+          timeStamp: oldPointer.timeStamp,
+        },
+        precision: change.precision,
+        clientDistance:
+          oldPointer.clientDistance +
+          change.point.sub(oldPointer.point).length(),
+      };
+      pointers[change.pointerId] = changedPointer;
+      changed.push(changedPointer);
     }
   }
   return {
@@ -117,7 +115,7 @@ export function change(
  * @param timeStamp - The event timestamp.
  * @returns A new pointer state with the removed pointers.
  */
-export function remove(
+export function removePointerState(
   state: IPointersState,
   curremove: readonly IPointerChangeEvent[],
   timeStamp: number,
@@ -230,7 +228,11 @@ export function createPointersState(node: Element): Observable<IPointersState> {
         changesSubscription = new Subscription();
         changesSubscription.add(
           changes$.subscribe((cur) => {
-            state = change(state, cur.pointers, cur.event.timeStamp);
+            state = changePointerState(
+              state,
+              cur.pointers,
+              cur.event.timeStamp,
+            );
             if (!cur.event.defaultPrevented) {
               cur.event.preventDefault();
             }
@@ -239,7 +241,11 @@ export function createPointersState(node: Element): Observable<IPointersState> {
         );
         changesSubscription.add(
           removals$.subscribe((cur) => {
-            state = remove(state, cur.pointers, cur.event.timeStamp);
+            state = removePointerState(
+              state,
+              cur.pointers,
+              cur.event.timeStamp,
+            );
             if (!cur.event.defaultPrevented) {
               cur.event.preventDefault();
             }
@@ -254,7 +260,7 @@ export function createPointersState(node: Element): Observable<IPointersState> {
     }
 
     const startsub = merge(mouseDown$, touchStart$).subscribe((cur) => {
-      state = add(state, cur.pointers, cur.event.timeStamp);
+      state = addPointerState(state, cur.pointers, cur.event.timeStamp);
       if (!cur.event.defaultPrevented) {
         cur.event.preventDefault();
       }
@@ -364,7 +370,7 @@ interface IPointersChangeEvent {
 }
 
 /** Internal representation of a single pointer change. */
-interface IPointerChangeEvent {
+export interface IPointerChangeEvent {
   /** The position in client coordinates. */
   readonly point: Vec2F;
   /** Unique identifier for this pointer. */

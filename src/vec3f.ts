@@ -20,9 +20,9 @@ export class Vec3F {
    * @param z - The Z component of the vector.
    */
   constructor(
-    public readonly x: number = 0,
-    public readonly y: number = 0,
-    public readonly z: number = 0,
+    public readonly x: number,
+    public readonly y: number,
+    public readonly z: number,
   ) {}
 
   /**
