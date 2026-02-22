@@ -3,21 +3,31 @@ import {
   IPointerDragStartEvent,
   IPointerDropEvent,
   IPointerTapEvent,
-  PointersEvents,
-} from "./pointers-events";
+  PointerGestures,
+} from "./pointer-gestures";
 import { add, change, EMPTY_STATE, remove } from "./pointers-state";
 import { Vec2F } from "./vec2f";
 import { Matrix3x3 } from "./matrix3x3";
 
-describe("PointersEvents", () => {
+describe("PointerGestures", () => {
   it("tracks taps", async () => {
     let state = EMPTY_STATE;
-    const events = new PointersEvents();
+    const events = new PointerGestures();
     const taps: IPointerTapEvent[] = [];
-    const subscription = events.taps$.subscribe((tapEvent) => taps.push(tapEvent));
-    state = add(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 0);
+    const subscription = events.taps$.subscribe((tapEvent) =>
+      taps.push(tapEvent),
+    );
+    state = add(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      0,
+    );
     events.accept(state);
-    state = remove(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 100);
+    state = remove(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      100,
+    );
     events.accept(state);
     await delay(350); // skip double tap check
     subscription.unsubscribe();
@@ -25,29 +35,57 @@ describe("PointersEvents", () => {
   });
   it("tracks double taps", async () => {
     let state = EMPTY_STATE;
-    const events = new PointersEvents();
+    const events = new PointerGestures();
     const doubleTaps: IPointerTapEvent[] = [];
-    const subscription = events.doubleTaps$.subscribe((tapEvent) => doubleTaps.push(tapEvent));
-    state = add(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 0);
+    const subscription = events.doubleTaps$.subscribe((tapEvent) =>
+      doubleTaps.push(tapEvent),
+    );
+    state = add(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      0,
+    );
     events.accept(state);
-    state = remove(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 100);
+    state = remove(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      100,
+    );
     events.accept(state);
-    state = add(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 200);
+    state = add(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      200,
+    );
     events.accept(state);
-    state = remove(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 300);
+    state = remove(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      300,
+    );
     events.accept(state);
     subscription.unsubscribe();
     expect(doubleTaps.length).toBe(1);
   });
   it("tracks long taps", async () => {
     let state = EMPTY_STATE;
-    const events = new PointersEvents();
+    const events = new PointerGestures();
     const longTaps: IPointerTapEvent[] = [];
-    const subscription = events.longTaps$.subscribe((tapEvent) => longTaps.push(tapEvent));
-    state = add(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 0);
+    const subscription = events.longTaps$.subscribe((tapEvent) =>
+      longTaps.push(tapEvent),
+    );
+    state = add(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      0,
+    );
     events.accept(state);
     await delay(1200);
-    state = remove(state, [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }], 1200);
+    state = remove(
+      state,
+      [{ pointerId: "mouse", point: new Vec2F(100, 100), precision: "low" }],
+      1200,
+    );
     events.accept(state);
     subscription.unsubscribe();
     expect(longTaps.length).toBe(1);
@@ -57,7 +95,7 @@ describe("PointersEvents", () => {
     const DRAG_DATA = { item: "card-1" };
 
     function setupDrag() {
-      const events = new PointersEvents<{ item: string }>();
+      const events = new PointerGestures<{ item: string }>();
       const dragStarts: IPointerDragStartEvent<{ item: string }>[] = [];
       const dragMoves: IPointerDragEvent<{ item: string }>[] = [];
       const dragEnds: IPointerDropEvent<{ item: string }>[] = [];
@@ -79,11 +117,19 @@ describe("PointersEvents", () => {
       const { events, dragStarts, cleanup } = setupDrag();
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Move beyond the 10px drag threshold
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
       expect(dragStarts.length).toBe(1);
@@ -97,11 +143,19 @@ describe("PointersEvents", () => {
       const { events, dragStarts, cleanup } = setupDrag();
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Move within the 10px drag threshold
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(55, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(55, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
       expect(dragStarts.length).toBe(0);
@@ -113,18 +167,34 @@ describe("PointersEvents", () => {
       const { events, dragMoves, cleanup } = setupDrag();
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Move past threshold to start drag
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
       // Additional moves should emit dragMove
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(80, 50), precision: "low" }], 20);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(80, 50), precision: "low" }],
+        20,
+      );
       events.accept(state);
 
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(100, 60), precision: "low" }], 30);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(100, 60), precision: "low" }],
+        30,
+      );
       events.accept(state);
 
       // First accept after threshold emits both dragStart and dragMove
@@ -139,19 +209,35 @@ describe("PointersEvents", () => {
       const { events, dragStarts, dragEnds, cleanup } = setupDrag();
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Start drag
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
       // Move further
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(100, 80), precision: "low" }], 20);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(100, 80), precision: "low" }],
+        20,
+      );
       events.accept(state);
 
       // Release pointer
-      state = remove(state, [{ pointerId: "touch-0", point: new Vec2F(100, 80), precision: "low" }], 30);
+      state = remove(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(100, 80), precision: "low" }],
+        30,
+      );
       events.accept(state);
 
       expect(dragStarts.length).toBe(1);
@@ -163,28 +249,46 @@ describe("PointersEvents", () => {
     });
 
     it("should not emit dragMove or dragEnd if consumer does not set data on dragStart", () => {
-      const events = new PointersEvents<{ item: string }>();
+      const events = new PointerGestures<{ item: string }>();
       const dragMoves: IPointerDragEvent<{ item: string }>[] = [];
       const dragEnds: IPointerDropEvent<{ item: string }>[] = [];
 
       // Subscribe to dragStart but do NOT set data (opt out of drag)
       const subs = [
-        events.dragStart$.subscribe(() => { /* no data set */ }),
+        events.dragStart$.subscribe(() => {
+          /* no data set */
+        }),
         events.dragMove$.subscribe((e) => dragMoves.push(e)),
         events.dragEnd$.subscribe((e) => dragEnds.push(e)),
       ];
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(100, 50), precision: "low" }], 20);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(100, 50), precision: "low" }],
+        20,
+      );
       events.accept(state);
 
-      state = remove(state, [{ pointerId: "touch-0", point: new Vec2F(100, 50), precision: "low" }], 30);
+      state = remove(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(100, 50), precision: "low" }],
+        30,
+      );
       events.accept(state);
 
       expect(dragMoves.length).toBe(0);
@@ -200,15 +304,27 @@ describe("PointersEvents", () => {
       const endPoint = new Vec2F(150, 100);
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: startPoint, precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: startPoint, precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Move past threshold
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
       // Move to final position
-      state = change(state, [{ pointerId: "touch-0", point: endPoint, precision: "low" }], 20);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: endPoint, precision: "low" }],
+        20,
+      );
       events.accept(state);
 
       const lastMove = dragMoves[dragMoves.length - 1];
@@ -224,17 +340,33 @@ describe("PointersEvents", () => {
       const { events, dragStarts, cleanup } = setupDrag();
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Multiple moves past threshold
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(80, 50), precision: "low" }], 20);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(80, 50), precision: "low" }],
+        20,
+      );
       events.accept(state);
 
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(100, 50), precision: "low" }], 30);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(100, 50), precision: "low" }],
+        30,
+      );
       events.accept(state);
 
       expect(dragStarts.length).toBe(1);
@@ -243,7 +375,7 @@ describe("PointersEvents", () => {
     });
 
     it("should not emit tap after a drag gesture", async () => {
-      const events = new PointersEvents<{ item: string }>();
+      const events = new PointerGestures<{ item: string }>();
       const taps: IPointerTapEvent[] = [];
       const dragStarts: IPointerDragStartEvent<{ item: string }>[] = [];
 
@@ -256,15 +388,27 @@ describe("PointersEvents", () => {
       ];
 
       let state = EMPTY_STATE;
-      state = add(state, [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }], 0);
+      state = add(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(50, 50), precision: "low" }],
+        0,
+      );
       events.accept(state);
 
       // Drag past threshold
-      state = change(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 10);
+      state = change(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        10,
+      );
       events.accept(state);
 
       // Release
-      state = remove(state, [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }], 20);
+      state = remove(
+        state,
+        [{ pointerId: "touch-0", point: new Vec2F(65, 50), precision: "low" }],
+        20,
+      );
       events.accept(state);
 
       await delay(350);

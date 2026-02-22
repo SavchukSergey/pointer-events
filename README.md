@@ -23,7 +23,7 @@ npm install pointer-gestures rxjs
 ## Quick start
 
 ```ts
-import { createPointersState, PointersEvents } from "pointer-gestures";
+import { createPointersState, PointerGestures } from "pointer-gestures";
 
 const element = document.getElementById("canvas")!;
 
@@ -31,7 +31,7 @@ const element = document.getElementById("canvas")!;
 const pointers$ = createPointersState(element);
 
 // 2. Create a gesture recogniser
-const gestures = new PointersEvents<{ id: string }>();
+const gestures = new PointerGestures<{ id: string }>();
 
 // 3. Listen for gestures
 gestures.taps$.subscribe((tap) => {
@@ -85,7 +85,7 @@ const subscription = pointers$.subscribe((state) => {
 subscription.unsubscribe();
 ```
 
-### `PointersEvents<TDragData>`
+### `PointerGestures<TDragData>`
 
 A gesture recogniser that consumes `IPointersState` snapshots and emits high-level gesture events via RxJS Subjects.
 
@@ -94,9 +94,9 @@ A gesture recogniser that consumes `IPointersState` snapshots and emits high-lev
 #### Tap gestures
 
 ```ts
-import { createPointersState, PointersEvents } from "pointer-gestures";
+import { createPointersState, PointerGestures } from "pointer-gestures";
 
-const gestures = new PointersEvents();
+const gestures = new PointerGestures();
 
 gestures.taps$.subscribe((event) => {
   // Single tap detected (emitted after the double-tap time window expires)
@@ -122,7 +122,7 @@ pointers$.subscribe((state) => gestures.accept(state));
 To opt in to a drag operation, set `data` on the `dragStart$` event. If `data` is not set, the drag is ignored.
 
 ```ts
-import { createPointersState, PointersEvents } from "pointer-gestures";
+import { createPointersState, PointerGestures } from "pointer-gestures";
 
 interface DragPayload {
   elementId: string;
@@ -130,7 +130,7 @@ interface DragPayload {
   startY: number;
 }
 
-const gestures = new PointersEvents<DragPayload>();
+const gestures = new PointerGestures<DragPayload>();
 
 // Accept the drag by assigning data
 gestures.dragStart$.subscribe((event) => {
@@ -166,7 +166,7 @@ pointers$.subscribe((state) => gestures.accept(state));
 
 ### `Multitouch`
 
-Tracks up to three simultaneous touch points and computes an affine transformation matrix representing the combined translation, rotation, and scaling. Used internally by `PointersEvents` but can also be used standalone.
+Tracks up to three simultaneous touch points and computes an affine transformation matrix representing the combined translation, rotation, and scaling. Used internally by `PointerGestures` but can also be used standalone.
 
 ```ts
 import { Multitouch } from "pointer-gestures";

@@ -1,3 +1,3 @@
 export { Multitouch } from "./multitouch";
-export { PointersEvents } from "./pointers-events";
+export { PointerGestures } from "./pointer-gestures";
 export { createPointersState } from "./pointers-state";

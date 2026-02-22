@@ -18,7 +18,7 @@ const cancel$ = fromEvent<KeyboardEvent>(window, "keydown").pipe(
  *
  * @typeParam TDragData - Application-specific payload attached to drag operations.
  */
-export class PointersEvents<TDragData> {
+export class PointerGestures<TDragData> {
   /** Emits when a double-tap gesture is recognised. */
   public readonly doubleTaps$ = new Subject<IPointerTapEvent>();
   /** Emits when a single-tap gesture is recognised. */
@@ -167,7 +167,10 @@ export class PointersEvents<TDragData> {
    * @param multitouch - The multitouch tracker to update.
    * @param state - The current pointer state.
    */
-  private updateMultitouch(multitouch: Multitouch, state: IPointersState): void {
+  private updateMultitouch(
+    multitouch: Multitouch,
+    state: IPointersState,
+  ): void {
     for (const item of state.removed) {
       multitouch.untouch(item.pointerId);
     }
