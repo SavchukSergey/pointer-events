@@ -24,8 +24,7 @@ export class Multitouch {
   public touch(id: string, point: Vec2F): Multitouch {
     if (!this.start || this.touches.length < 3) {
       this.startMove([
-        ...this.touches,
-        {
+        ...this.touches, {
           id,
           point,
         },
@@ -41,14 +40,10 @@ export class Multitouch {
    * @returns This instance for method chaining.
    */
   public move(id: string, point: Vec2F): Multitouch {
-    this.touches = this.touches.map((touch) =>
-      touch.id === id
-        ? {
-            id,
-            point,
-          }
-        : touch,
-    );
+    this.touches = this.touches.map((touch) => touch.id === id ? {
+      id,
+      point,
+    } : touch);
     return this;
   }
 

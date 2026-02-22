@@ -1,12 +1,13 @@
-import { filter, fromEvent, Subject, Subscription } from "rxjs";
-import { Matrix3x3 } from "./matrix3x3";
+import type { Subscription } from "rxjs";
+import { filter, fromEvent, Subject } from "rxjs";
+import type { Matrix3x3 } from "./matrix3x3";
 import { Multitouch } from "./multitouch";
 import {
   EMPTY_STATE,
-  IPointerState,
   type IPointersState,
+  type IPointerState,
 } from "./pointers-state";
-import { Vec2F } from "./vec2f";
+import type { Vec2F } from "./vec2f";
 
 const cancel$ = fromEvent<KeyboardEvent>(window, "keydown").pipe(
   filter((kb) => kb.key === "Escape"),

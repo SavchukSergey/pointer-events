@@ -319,7 +319,7 @@ describe("addPointerState", () => {
     expect(second.active).toBe(1);
     expect(second.added.length).toBe(0);
     // Original position should be preserved
-    expectVec2F(second.pointers["mouse"]!.point, new Vec2F(10, 20));
+    expectVec2F(second.pointers["mouse"]?.point, new Vec2F(10, 20));
   });
 
   it("should add a second pointer to existing state", () => {
@@ -360,7 +360,7 @@ describe("changePointerState", () => {
     expect(moved.added.length).toBe(0);
     expect(moved.removed.length).toBe(0);
     expectVec2F(moved.changed[0].point, new Vec2F(110, 120));
-    expectVec2F(moved.pointers["mouse"]!.point, new Vec2F(110, 120));
+    expectVec2F(moved.pointers["mouse"]?.point, new Vec2F(110, 120));
   });
 
   it("should preserve the start position", () => {
@@ -393,8 +393,8 @@ describe("changePointerState", () => {
     );
 
     expect(moved.changed[0].prev).not.toBeNull();
-    expectVec2F(moved.changed[0].prev!.point, new Vec2F(100, 100));
-    expect(moved.changed[0].prev!.timeStamp).toBe(0);
+    expectVec2F(moved.changed[0].prev?.point, new Vec2F(100, 100));
+    expect(moved.changed[0].prev?.timeStamp).toBe(0);
   });
 
   it("should accumulate clientDistance across multiple moves", () => {
@@ -409,7 +409,7 @@ describe("changePointerState", () => {
       10,
     );
     // distance = sqrt(9+16) = 5
-    expect(state.pointers["mouse"]!.clientDistance).toBeCloseTo(5);
+    expect(state.pointers["mouse"]?.clientDistance).toBeCloseTo(5);
 
     state = changePointerState(
       state,
@@ -417,7 +417,7 @@ describe("changePointerState", () => {
       20,
     );
     // additional distance = sqrt(9+16) = 5, total = 10
-    expect(state.pointers["mouse"]!.clientDistance).toBeCloseTo(10);
+    expect(state.pointers["mouse"]?.clientDistance).toBeCloseTo(10);
   });
 
   it("should ignore a pointer that does not exist", () => {

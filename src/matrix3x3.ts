@@ -30,7 +30,7 @@ export class Matrix3x3 {
     public readonly m31: number,
     public readonly m32: number,
     public readonly m33: number,
-  ) { }
+  ) {}
 
   /**
    * Creates a uniform scale matrix.
@@ -325,6 +325,7 @@ export class Matrix3x3 {
       return 0;
     }
     const angle = Math.atan2(vec.y, vec.x);
+
     return angle < 0 ? angle + 2 * Math.PI : angle;
   }
 }
