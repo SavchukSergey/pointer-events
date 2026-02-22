@@ -4,21 +4,19 @@ A lightweight TypeScript library for unified pointer tracking and gesture recogn
 
 ## Features
 
-- Unified mouse and touch tracking via a single RxJS Observable
+- Unified mouse and touch tracking via a single Observable
 - Gesture recognition: tap, double-tap, long-tap
 - Drag & drop with multitouch support (up to 3 simultaneous touch points)
 - Affine transformation matrix (translation, rotation, scale) computed from touch movements
 - Immutable state snapshots on every pointer change
 - Drag cancellation via Escape key
-- Zero runtime dependencies beyond RxJS
+- Zero runtime dependencies
 
 ## Installation
 
 ```bash
-npm install pointer-gestures rxjs
+npm install pointer-gestures
 ```
-
-`rxjs` is a peer dependency and must be installed alongside this library.
 
 ## Quick start
 
@@ -56,7 +54,7 @@ pointers$.subscribe((state) => {
 
 ### `createPointersState(node: Element): Observable<IPointersState>`
 
-Creates an RxJS Observable that tracks all mouse and touch interactions on the given DOM element. Each emission is an immutable `IPointersState` snapshot containing added, changed, and removed pointers.
+Creates an Observable that tracks all mouse and touch interactions on the given DOM element. Each emission is an immutable `IPointersState` snapshot containing added, changed, and removed pointers.
 
 ```ts
 import { createPointersState } from "pointer-gestures";
@@ -87,7 +85,7 @@ subscription.unsubscribe();
 
 ### `PointerGestures<TDragData>`
 
-A gesture recogniser that consumes `IPointersState` snapshots and emits high-level gesture events via RxJS Subjects.
+A gesture recogniser that consumes `IPointersState` snapshots and emits high-level gesture events.
 
 `TDragData` is a generic type parameter for the application-specific data attached to drag operations.
 

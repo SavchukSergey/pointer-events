@@ -1,5 +1,4 @@
-import { fromEvent, merge, Observable, Subscription } from "rxjs";
-import { map } from "rxjs/operators";
+import { fromEvent, map, merge, Observable, Subscription } from "./observable";
 import { Vec2F } from "./vec2f";
 
 /** The default empty pointer state with no active pointers. */

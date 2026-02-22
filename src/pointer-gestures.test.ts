@@ -1,4 +1,4 @@
-import { Subscription } from "rxjs";
+import { Subscription } from "./observable";
 import { Matrix3x3 } from "./matrix3x3";
 import type { IPointerDragCancelEvent, IPointerDragEvent, IPointerDragStartEvent, IPointerDropEvent, IPointerTapEvent } from "./pointer-gestures";
 import { PointerGestures } from "./pointer-gestures";
