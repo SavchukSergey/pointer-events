@@ -88,30 +88,6 @@ export function fromEvent<T extends Event>(
   });
 }
 
-/** Creates an Observable that emits whenever any of the given Observables emit. */
-export function merge<T>(...observables: Observable<T>[]): Observable<T> {
-  return new Observable<T>((subscriber) => {
-    const subs = observables.map((obs) =>
-      obs.subscribe((value) => subscriber.next(value)),
-    );
-
-    return () => {
-      for (const sub of subs) {
-        sub.unsubscribe();
-      }
-    };
-  });
-}
-
-/** Transforms each emitted value using the given mapping function. */
-export function map<T, U>(fn: (value: T) => U): (source: Observable<T>) => Observable<U> {
-  return (source: Observable<T>) => new Observable<U>((subscriber) => {
-    const sub = source.subscribe((value) => subscriber.next(fn(value)));
-
-    return () => sub.unsubscribe();
-  });
-}
-
 /** Passes through only the values for which the predicate returns true. */
 export function filter<T>(predicate: (value: T) => boolean): (source: Observable<T>) => Observable<T> {
   return (source: Observable<T>) => new Observable<T>((subscriber) => {

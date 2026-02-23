@@ -9,8 +9,9 @@ import { Vec2F } from "./vec2f";
 export class Multitouch {
   private touches: readonly ITouchInfo[] = [];
 
+  private accMatrix = Matrix3x3.identity;
+
   private start: {
-    readonly accMatrix: Matrix3x3;
     readonly matrix: Matrix3x3;
     readonly inverseMatrix: Matrix3x3;
   } | null = null;
@@ -65,13 +66,13 @@ export class Multitouch {
    */
   public eval(): Matrix3x3 {
     if (!this.start) {
-      return Matrix3x3.identity;
+      return this.accMatrix;
     }
 
     const newInfo = buildMatrix(this.touches);
     const current = newInfo.mulM(this.start.inverseMatrix);
 
-    return current.mulM(this.start.accMatrix);
+    return current.mulM(this.accMatrix);
   }
 
   /**
@@ -79,12 +80,12 @@ export class Multitouch {
    * current accumulated matrix so subsequent moves are computed relative to it.
    */
   private startMove(touches: readonly ITouchInfo[]): void {
+    this.accMatrix = this.eval();
     if (!touches.length) {
       this.start = null;
     } else {
       const matrix = buildMatrix(touches);
       this.start = {
-        accMatrix: this.eval(),
         matrix,
         inverseMatrix: matrix.inverse(),
       };

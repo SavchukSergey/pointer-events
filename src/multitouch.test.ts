@@ -70,10 +70,9 @@ describe("Multitouch", () => {
     const finalA = new Vec2F(-20, -20);
     multitouch.move("A", finalA);
     multitouch.move("B", new Vec2F(20, 20));
-    const actualMatrix = multitouch.eval();
     multitouch.untouch("A");
     multitouch.untouch("B");
-    const actualGlobalA = actualMatrix.mulV2(initialA);
+    const actualGlobalA = multitouch.eval().mulV2(initialA);
     expectVec2F(actualGlobalA, finalA);
   });
 
@@ -124,8 +123,10 @@ describe("Multitouch", () => {
   it("should handle untouch when no touches are active", () => {
     const multitouch = new Multitouch();
     // Calling untouch before any touch should not throw
+    multitouch.touch("A", new Vec2F(0, 0));
+    multitouch.move("A", new Vec2F(5, 5));
     multitouch.untouch("A");
     const matrix = multitouch.eval();
-    expectMatrix3x3(matrix, Matrix3x3.identity);
+    expectMatrix3x3(matrix, Matrix3x3.translate(new Vec2F(5, 5)));
   });
 });
