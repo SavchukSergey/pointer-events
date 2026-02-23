@@ -32,9 +32,7 @@ export class PointerGestures<TDragData> {
   /** Emits when all pointers are released during an active drag. */
   public readonly dragEnd$ = new Subject<IPointerDropEvent<TDragData>>();
   /** Emits when a drag is cancelled (e.g. by pressing Escape). */
-  public readonly dragCancel$ = new Subject<
-    IPointerDragCancelEvent<TDragData>
-  >();
+  public readonly dragCancel$ = new Subject<IPointerDragCancelEvent<TDragData>>();
 
   private readonly _edges: [
     IPointersState,
@@ -196,7 +194,12 @@ export class PointerGestures<TDragData> {
           pointer.pointerId.toString(),
           pointer.start.point,
         );
-        const dragStart: IPointerDragStartEvent<TDragData> = { pointer, multitouch };
+        const dragStart: IPointerDragStartEvent<TDragData> = {
+          pointer, multitouch,
+          shiftKey: state.shiftKey,
+          ctrlKey: state.ctrlKey,
+          altKey: state.altKey,
+        };
         this.dragStart$.next(dragStart);
         if (dragStart.data) {
           this.reset();
@@ -229,11 +232,17 @@ export class PointerGestures<TDragData> {
           pointers: state,
           data: this._dragState.payload.data,
           matrix,
+          shiftKey: state.shiftKey,
+          ctrlKey: state.ctrlKey,
+          altKey: state.altKey,
         });
       } else {
         this.dragEnd$.next({
           data: this._dragState.payload.data,
           matrix,
+          shiftKey: state.shiftKey,
+          ctrlKey: state.ctrlKey,
+          altKey: state.altKey,
         });
         this._dragState.payload.cancelSubscription.unsubscribe();
         this._dragState = undefined;
@@ -290,6 +299,9 @@ export interface IPointerDragStartEvent<TDragData> {
   readonly pointer: IPointerState;
   /** The multitouch tracker for this drag session. */
   readonly multitouch: Multitouch;
+  readonly shiftKey: boolean;
+  readonly ctrlKey: boolean;
+  readonly altKey: boolean;
   /** Set this to attach application-specific drag data and accept the drag. */
   data?: TDragData;
 }
@@ -302,12 +314,16 @@ export interface IPointerDragEvent<TDragData> {
   readonly matrix: Matrix3x3;
   /** The application-specific drag data. */
   readonly data: TDragData;
+  readonly shiftKey: boolean;
+  readonly ctrlKey: boolean;
+  readonly altKey: boolean;
 }
 
 /** Emitted when a drag is cancelled (e.g. by pressing Escape). */
 export interface IPointerDragCancelEvent<TDragData> {
   /** The application-specific drag data. */
   readonly data: TDragData;
+
 }
 
 /** Emitted when all pointers are released, completing the drag. */
@@ -316,6 +332,9 @@ export interface IPointerDropEvent<TDragData> {
   readonly matrix: Matrix3x3;
   /** The application-specific drag data. */
   readonly data: TDragData;
+  readonly shiftKey: boolean;
+  readonly ctrlKey: boolean;
+  readonly altKey: boolean;
 }
 
 /** Internal drag state wrapper. */

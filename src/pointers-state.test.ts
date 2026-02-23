@@ -113,6 +113,9 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
       changed: null,
       timeStamp: -1,
       removed: null,
+      shiftKey: false,
+      ctrlKey: false,
+      altKey: false,
     });
 
     expectPointersState(states[1], {
@@ -138,6 +141,9 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
       changed: null,
       timeStamp: -1,
       removed: null,
+      shiftKey: false,
+      ctrlKey: false,
+      altKey: false,
     });
 
     expectPointersState(states[2], {
@@ -147,6 +153,9 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
       changed: null,
       timeStamp: -1,
       removed: null,
+      shiftKey: false,
+      ctrlKey: false,
+      altKey: false,
     });
 
     document.body.removeChild(elem);
@@ -157,7 +166,7 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
 describe("addPointerState", () => {
   it("should add a pointer to empty state", () => {
     const point = new Vec2F(100, 200);
-    const state = addPointerState(EMPTY_STATE, { pointerId: 1, point, precision: "normal" }, 10);
+    const state = addPointerState(EMPTY_STATE, { pointerId: 1, point, precision: "normal", timeStamp: 10 });
 
     expect(state.active).toBe(1);
     expect(state.timeStamp).toBe(10);
@@ -177,8 +186,8 @@ describe("addPointerState", () => {
   });
 
   it("should add multiple pointers", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low" }, 5);
-    state = addPointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low" }, 5);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low", timeStamp: 5 });
+    state = addPointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low", timeStamp: 5 });
 
     expect(state.active).toBe(2);
     expect(state.added).toBeDefined();
@@ -187,8 +196,8 @@ describe("addPointerState", () => {
   });
 
   it("should not add a pointer that already exists", () => {
-    const first = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "normal" }, 0);
-    const second = addPointerState(first, { pointerId: 1, point: new Vec2F(50, 60), precision: "normal" }, 10);
+    const first = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "normal", timeStamp: 0 });
+    const second = addPointerState(first, { pointerId: 1, point: new Vec2F(50, 60), precision: "normal", timeStamp: 10 });
 
     expect(second.active).toBe(1);
     expect(second.added).toBeNull();
@@ -197,8 +206,8 @@ describe("addPointerState", () => {
   });
 
   it("should add a second pointer to existing state", () => {
-    const first = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low" }, 0);
-    const second = addPointerState(first, { pointerId: 2, point: new Vec2F(50, 60), precision: "low" }, 10);
+    const first = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low", timeStamp: 0 });
+    const second = addPointerState(first, { pointerId: 2, point: new Vec2F(50, 60), precision: "low", timeStamp: 10 });
 
     expect(second.active).toBe(2);
     const added = second.added;
@@ -213,8 +222,8 @@ describe("addPointerState", () => {
 
 describe("changePointerState", () => {
   it("should update the position of an existing pointer", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal" }, 0);
-    state = changePointerState(state, { pointerId: 1, point: new Vec2F(110, 120), precision: "normal" }, 10);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal", timeStamp: 0 });
+    state = changePointerState(state, { pointerId: 1, point: new Vec2F(110, 120), precision: "normal", timeStamp: 10 });
 
     expect(state.active).toBe(1);
     const changed = state.changed;
@@ -229,8 +238,8 @@ describe("changePointerState", () => {
 
   it("should preserve the start position", () => {
     const start = new Vec2F(100, 100);
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: start, precision: "normal" }, 0);
-    state = changePointerState(state, { pointerId: 1, point: new Vec2F(200, 300), precision: "normal" }, 10);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: start, precision: "normal", timeStamp: 0 });
+    state = changePointerState(state, { pointerId: 1, point: new Vec2F(200, 300), precision: "normal", timeStamp: 10 });
 
     const changed = state.changed;
     expect(changed).toBeDefined();
@@ -241,8 +250,8 @@ describe("changePointerState", () => {
   });
 
   it("should set prev to the previous position", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal" }, 0);
-    state = changePointerState(state, { pointerId: 1, point: new Vec2F(110, 100), precision: "normal" }, 10);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal", timeStamp: 0 });
+    state = changePointerState(state, { pointerId: 1, point: new Vec2F(110, 100), precision: "normal", timeStamp: 10 });
 
     const changed = state.changed;
     expect(changed).toBeDefined();
@@ -254,26 +263,26 @@ describe("changePointerState", () => {
   });
 
   it("should accumulate clientDistance across multiple moves", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(0, 0), precision: "normal" }, 0);
-    state = changePointerState(state, { pointerId: 1, point: new Vec2F(3, 4), precision: "normal" }, 10);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(0, 0), precision: "normal", timeStamp: 0 });
+    state = changePointerState(state, { pointerId: 1, point: new Vec2F(3, 4), precision: "normal", timeStamp: 10 });
     // distance = sqrt(9+16) = 5
     expect(state.pointers[1]?.clientDistance).toBeCloseTo(5);
 
-    state = changePointerState(state, { pointerId: 1, point: new Vec2F(6, 8), precision: "normal" }, 20);
+    state = changePointerState(state, { pointerId: 1, point: new Vec2F(6, 8), precision: "normal", timeStamp: 20 });
     // additional distance = sqrt(9+16) = 5, total = 10
     expect(state.pointers[1]?.clientDistance).toBeCloseTo(10);
   });
 
   it("should ignore a pointer that does not exist", () => {
-    const state = changePointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "normal" }, 10);
+    const state = changePointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "normal", timeStamp: 10 });
 
     expect(state.active).toBe(0);
     expect(state.changed).toBeNull();
   });
 
   it("should update the timestamp", () => {
-    const initial = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(0, 0), precision: "normal" }, 0);
-    const moved = changePointerState(initial, { pointerId: 1, point: new Vec2F(10, 0), precision: "normal" }, 42);
+    const initial = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(0, 0), precision: "normal", timeStamp: 0 });
+    const moved = changePointerState(initial, { pointerId: 1, point: new Vec2F(10, 0), precision: "normal", timeStamp: 42 });
 
     expect(moved.timeStamp).toBe(42);
     expect(moved.changed?.timeStamp).toBe(42);
@@ -282,8 +291,8 @@ describe("changePointerState", () => {
 
 describe("removePointerState", () => {
   it("should remove an existing pointer", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal" }, 0);
-    state = removePointerState(state, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal" }, 10);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal", timeStamp: 0 });
+    state = removePointerState(state, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal", timeStamp: 10 });
 
     expect(state.active).toBe(0);
     const removed = state.removed;
@@ -298,17 +307,17 @@ describe("removePointerState", () => {
   });
 
   it("should ignore a pointer that does not exist", () => {
-    const state = removePointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "normal" }, 10);
+    const state = removePointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "normal", timeStamp: 10 });
 
     expect(state.active).toBe(0);
     expect(state.removed).toBeNull();
   });
 
   it("should remove one pointer and keep the other", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low" }, 0);
-    state = addPointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low" }, 0);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low", timeStamp: 0 });
+    state = addPointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low", timeStamp: 0 });
 
-    state = removePointerState(state, { pointerId: 1, point: new Vec2F(10, 20), precision: "low" }, 10);
+    state = removePointerState(state, { pointerId: 1, point: new Vec2F(10, 20), precision: "low", timeStamp: 10 });
 
     expect(state.active).toBe(1);
     const removed = state.removed;
@@ -321,11 +330,11 @@ describe("removePointerState", () => {
   });
 
   it("should remove multiple pointers", () => {
-    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low" }, 0);
-    state = addPointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low" }, 0);
+    let state = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(10, 20), precision: "low", timeStamp: 0 });
+    state = addPointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low", timeStamp: 0 });
 
-    state = removePointerState(state, { pointerId: 1, point: new Vec2F(10, 20), precision: "low" }, 10);
-    state = removePointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low" }, 10);
+    state = removePointerState(state, { pointerId: 1, point: new Vec2F(10, 20), precision: "low", timeStamp: 10 });
+    state = removePointerState(state, { pointerId: 2, point: new Vec2F(30, 40), precision: "low", timeStamp: 10 });
 
     expect(state.active).toBe(0);
     const removed = state.removed;
@@ -335,8 +344,8 @@ describe("removePointerState", () => {
   });
 
   it("should not mutate the original state", () => {
-    const initial = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal" }, 0);
-    removePointerState(initial, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal" }, 10);
+    const initial = addPointerState(EMPTY_STATE, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal", timeStamp: 0 });
+    removePointerState(initial, { pointerId: 1, point: new Vec2F(100, 100), precision: "normal", timeStamp: 10 });
 
     // Original state should still have the pointer
     expect(initial.active).toBe(1);

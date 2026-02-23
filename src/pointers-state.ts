@@ -9,6 +9,9 @@ export const EMPTY_STATE: IPointersState = {
   timeStamp: -1,
   pointers: {},
   removed: null,
+  shiftKey: false,
+  ctrlKey: false,
+  altKey: false,
 };
 
 type PointersStateMap = { [key: string]: IPointerState | undefined };
@@ -16,119 +19,100 @@ type PointersStateMap = { [key: string]: IPointerState | undefined };
 /**
  * Produces a new state with the given pointers added.
  * @param state - The current pointer state.
- * @param add - The pointer change event to add.
- * @param timeStamp - The event timestamp.
+ * @param event - The pointer change event to add.
  * @returns A new pointer state with the added pointers.
  */
-export function addPointerState(state: IPointersState, add: IPointerChangeEvent, timeStamp: number): IPointersState {
-  if (!state.pointers[add.pointerId]) {
-    const newPointer: IPointerState = {
-      pointerId: add.pointerId,
-      point: add.point,
-      timeStamp: timeStamp,
-      start: {
-        point: add.point,
-        timeStamp,
-      },
-      prev: null,
-      precision: add.precision,
-      clientDistance: 0,
-    };
+export function addPointerState(state: IPointersState, event: IPointerChangeEvent): IPointersState {
+  const existingPointer = state.pointers[event.pointerId];
 
-    return {
-      ...state,
-      timeStamp,
-      pointers: {
-        ...state.pointers,
-        [add.pointerId]: newPointer
-      },
-      added: newPointer,
-      changed: null,
-      removed: null,
-      active: state.active + 1,
-    };
-  }
+  const newPointer: IPointerState | undefined = existingPointer ? undefined : {
+    pointerId: event.pointerId,
+    point: event.point,
+    timeStamp: event.timeStamp,
+    start: {
+      point: event.point,
+      timeStamp: event.timeStamp,
+    },
+    prev: null,
+    precision: event.precision,
+    clientDistance: 0,
+  };
 
   return {
     ...state,
-    added: null,
+    timeStamp: event.timeStamp,
+    pointers: existingPointer ? state.pointers : {
+      ...state.pointers,
+      [event.pointerId]: newPointer
+    },
+    active: existingPointer ? state.active : state.active + 1,
+    added: newPointer || null,
     changed: null,
     removed: null,
+    shiftKey: event.shiftKey ?? false,
+    ctrlKey: event.ctrlKey ?? false,
+    altKey: event.altKey ?? false,
   };
 }
 
 /**
  * Produces a new state with the given pointers updated to new positions.
  * @param state - The current pointer state.
- * @param change - The pointer change event to apply.
- * @param timeStamp - The event timestamp.
+ * @param event - The pointer change event to apply.
  * @returns A new pointer state with the changed pointers.
  */
-export function changePointerState(state: IPointersState, change: IPointerChangeEvent, timeStamp: number): IPointersState {
-  const oldPointer = state.pointers[change.pointerId];
-  if (oldPointer) {
-    const changedPointer: IPointerState = {
-      pointerId: oldPointer.pointerId,
-      point: change.point,
-      timeStamp: timeStamp,
-      start: oldPointer.start,
-      prev: {
-        point: oldPointer.point,
-        timeStamp: oldPointer.timeStamp,
-      },
-      precision: change.precision,
-      clientDistance:
-        oldPointer.clientDistance +
-        change.point.sub(oldPointer.point).length(),
-    };
+export function changePointerState(state: IPointersState, event: IPointerChangeEvent): IPointersState {
+  const oldPointer = state.pointers[event.pointerId];
 
-    return {
-      ...state,
-      timeStamp,
-      pointers: {
-        ...state.pointers,
-        [change.pointerId]: changedPointer
-      },
-      added: null,
-      changed: changedPointer,
-      removed: null,
-    };
-  }
+  const changedPointer: IPointerState | undefined = oldPointer ? {
+    pointerId: oldPointer.pointerId,
+    point: event.point,
+    timeStamp: event.timeStamp,
+    start: oldPointer.start,
+    prev: {
+      point: oldPointer.point,
+      timeStamp: oldPointer.timeStamp,
+    },
+    precision: event.precision,
+    clientDistance: oldPointer.clientDistance + event.point.sub(oldPointer.point).length(),
+  } : undefined;
+
   return {
     ...state,
+    timeStamp: event.timeStamp,
+    pointers: changedPointer ? {
+      ...state.pointers,
+      [event.pointerId]: changedPointer
+    } : state.pointers,
     added: null,
-    changed: null,
+    changed: changedPointer || null,
     removed: null,
+    shiftKey: event.shiftKey ?? false,
+    ctrlKey: event.ctrlKey ?? false,
+    altKey: event.altKey ?? false,
   };
 }
 
 /**
  * Produces a new state with the given pointers removed.
  * @param state - The current pointer state.
- * @param remove - The pointer change events identifying pointers to remove.
- * @param timeStamp - The event timestamp.
+ * @param event - The pointer change events identifying pointers to remove.
  * @returns A new pointer state with the removed pointers.
  */
-export function removePointerState(state: IPointersState, remove: IPointerChangeEvent, timeStamp: number): IPointersState {
-  const oldPointer = state.pointers[remove.pointerId];
-  if (oldPointer) {
-    const pointers = { ...state.pointers };
-    delete pointers[remove.pointerId];
-    return {
-      ...state,
-      timeStamp,
-      pointers,
-      added: null,
-      changed: null,
-      removed: oldPointer,
-      active: state.active - 1,
-    };
-  }
+export function removePointerState(state: IPointersState, event: IPointerChangeEvent): IPointersState {
+  const { [event.pointerId]: oldPointer, ...otherPointers } = state.pointers;
+
   return {
     ...state,
+    timeStamp: event.timeStamp,
+    pointers: otherPointers,
+    active: oldPointer ? state.active - 1 : state.active,
     added: null,
     changed: null,
-    removed: null
+    removed: oldPointer || null,
+    shiftKey: event.shiftKey ?? false,
+    ctrlKey: event.ctrlKey ?? false,
+    altKey: event.altKey ?? false,
   };
 }
 
@@ -148,13 +132,13 @@ export function createPointersState(node: HTMLElement): Observable<IPointersStat
       try {
         node.setPointerCapture(event.pointerId);
       } catch { /* empty */ }
-      state = addPointerState(state, getPointerPosition(event), event.timeStamp);
+      state = addPointerState(state, getPointerPosition(event));
       if (!event.defaultPrevented) event.preventDefault();
       subscriber.next(state);
     };
 
     const onMove = (event: PointerEvent) => {
-      state = changePointerState(state, getPointerPosition(event), event.timeStamp);
+      state = changePointerState(state, getPointerPosition(event));
       if (!event.defaultPrevented) event.preventDefault();
       subscriber.next(state);
     };
@@ -163,7 +147,7 @@ export function createPointersState(node: HTMLElement): Observable<IPointersStat
       try {
         node.releasePointerCapture(event.pointerId);
       } catch { /* empty */ }
-      state = removePointerState(state, getPointerPosition(event), event.timeStamp);
+      state = removePointerState(state, getPointerPosition(event));
       if (!event.defaultPrevented) event.preventDefault();
       subscriber.next(state);
     };
@@ -172,7 +156,7 @@ export function createPointersState(node: HTMLElement): Observable<IPointersStat
       try {
         node.releasePointerCapture(event.pointerId);
       } catch { /* empty */ }
-      state = removePointerState(state, getPointerPosition(event), event.timeStamp);
+      state = removePointerState(state, getPointerPosition(event));
       subscriber.next(state);
     };
 
@@ -200,6 +184,10 @@ function getPointerPosition(event: PointerEvent): IPointerChangeEvent {
     pointerId: event.pointerId,
     point: new Vec2F(event.clientX, event.clientY),
     precision: event.pointerType === "touch" ? "low" : "normal",
+    timeStamp: event.timeStamp,
+    shiftKey: event.shiftKey,
+    ctrlKey: event.ctrlKey,
+    altKey: event.altKey,
   };
 }
 
@@ -207,6 +195,9 @@ function getPointerPosition(event: PointerEvent): IPointerChangeEvent {
 export interface IPointersState {
   /** Map of pointer ID to its current state. */
   readonly pointers: PointersStateMap;
+  readonly shiftKey: boolean;
+  readonly ctrlKey: boolean;
+  readonly altKey: boolean;
   /** Number of currently active pointers. */
   readonly active: number;
   /** Pointers that were added in this update. */
@@ -253,4 +244,9 @@ export interface IPointerChangeEvent {
   readonly pointerId: number;
   /** Input precision level. */
   readonly precision: "low" | "normal";
+  /** The event timestamp. */
+  readonly timeStamp: number;
+  readonly shiftKey?: boolean;
+  readonly ctrlKey?: boolean;
+  readonly altKey?: boolean;
 }

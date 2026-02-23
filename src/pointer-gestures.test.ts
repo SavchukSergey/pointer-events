@@ -39,16 +39,16 @@ describe("PointerGestures", () => {
       dragStarts: dragStarts as readonly IPointerDragStartEvent<TDragData>[],
       dragEnds: dragEnds as readonly IPointerDropEvent<TDragData>[],
       dragCancels: dragCancels as readonly IPointerDragCancelEvent<TDragData>[],
-      add(ev: IPointerChangeEvent, timeStamp: number) {
-        state = addPointerState(state, ev, timeStamp);
+      add(ev: IPointerChangeEvent) {
+        state = addPointerState(state, ev);
         events.accept(state);
       },
-      change(ev: IPointerChangeEvent, timeStamp: number) {
-        state = changePointerState(state, ev, timeStamp);
+      change(ev: IPointerChangeEvent) {
+        state = changePointerState(state, ev);
         events.accept(state);
       },
-      remove(ev: IPointerChangeEvent, timeStamp: number) {
-        state = removePointerState(state, ev, timeStamp);
+      remove(ev: IPointerChangeEvent) {
+        state = removePointerState(state, ev);
         events.accept(state);
       },
       dispose() {
@@ -60,8 +60,8 @@ describe("PointerGestures", () => {
   it("should track taps", async () => {
     const tracker = createGestureTrackerTest();
     try {
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 0);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 100);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
       await delay(350); // skip double tap check
       expect(tracker.taps.length).toBe(1);
     } finally {
@@ -71,9 +71,9 @@ describe("PointerGestures", () => {
   it("should not track unfinished taps", async () => {
     const tracker = createGestureTrackerTest();
     try {
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 0);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 100);
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 200);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 200 });
       await delay(350); // skip double tap check
       expect(tracker.taps.length).toBe(1);
     } finally {
@@ -83,13 +83,13 @@ describe("PointerGestures", () => {
   it("should track double tap after tap", async () => {
     const tracker = createGestureTrackerTest();
     try {
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 0);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 100);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
       await delay(350);
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 200);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 300);
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 400);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 500);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 200 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 300 });
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 400 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 500 });
       expect(tracker.taps.length).toBe(1);
       expect(tracker.taps[0].timeStamp).toBe(100);
       expect(tracker.doubleTaps.length).toBe(1);
@@ -101,10 +101,10 @@ describe("PointerGestures", () => {
   it("should track double taps", async () => {
     const tracker = createGestureTrackerTest();
     try {
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 0);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 100);
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 200);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 300);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 200 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 300 });
       expect(tracker.doubleTaps.length).toBe(1);
     } finally {
       tracker.dispose();
@@ -113,10 +113,10 @@ describe("PointerGestures", () => {
   it("does not emit double tap when total duration exceeds window", async () => {
     const tracker = createGestureTrackerTest();
     try {
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 0);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 100);
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 250);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 350);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 250 });
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 350 });
 
       await delay(350);
 
@@ -131,9 +131,9 @@ describe("PointerGestures", () => {
   it("should track long taps", async () => {
     const tracker = createGestureTrackerTest();
     try {
-      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 0);
+      tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
       await delay(1200);
-      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low" }, 1200);
+      tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 1200 });
       expect(tracker.longTaps.length).toBe(1);
     } finally {
       tracker.dispose();
@@ -150,8 +150,8 @@ describe("PointerGestures", () => {
       });
       try {
 
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
 
         expect(tracker.dragStarts.length).toBe(1);
         expect(tracker.dragStarts[0].pointer.pointerId).toBe(2);
@@ -170,8 +170,8 @@ describe("PointerGestures", () => {
       });
       try {
 
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
-        tracker.change({ pointerId: 2, point: new Vec2F(55, 50), precision: "low" }, 10);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
+        tracker.change({ pointerId: 2, point: new Vec2F(55, 50), precision: "low", timeStamp: 10 });
 
         expect(tracker.dragStarts.length).toBe(0);
       } finally {
@@ -187,12 +187,12 @@ describe("PointerGestures", () => {
       });
       try {
 
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
         // Move past threshold to start drag
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
         // Additional moves should emit dragMove
-        tracker.change({ pointerId: 2, point: new Vec2F(80, 50), precision: "low" }, 20);
-        tracker.change({ pointerId: 2, point: new Vec2F(100, 60), precision: "low" }, 30);
+        tracker.change({ pointerId: 2, point: new Vec2F(80, 50), precision: "low", timeStamp: 20 });
+        tracker.change({ pointerId: 2, point: new Vec2F(100, 60), precision: "low", timeStamp: 30 });
 
         // First accept after threshold emits both dragStart and dragMove
         // Subsequent accepts emit dragMove
@@ -212,10 +212,10 @@ describe("PointerGestures", () => {
       });
       try {
 
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
-        tracker.change({ pointerId: 2, point: new Vec2F(100, 80), precision: "low" }, 20);
-        tracker.remove({ pointerId: 2, point: new Vec2F(100, 80), precision: "low" }, 30);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
+        tracker.change({ pointerId: 2, point: new Vec2F(100, 80), precision: "low", timeStamp: 20 });
+        tracker.remove({ pointerId: 2, point: new Vec2F(100, 80), precision: "low", timeStamp: 30 });
 
         expect(tracker.dragStarts.length).toBe(1);
         expect(tracker.dragEnds.length).toBe(1);
@@ -231,10 +231,10 @@ describe("PointerGestures", () => {
     it("should not emit dragMove or dragEnd if consumer does not set data on dragStart", () => {
       const tracker = createGestureTrackerTest<{ item: string }>();
       try {
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
-        tracker.change({ pointerId: 2, point: new Vec2F(100, 50), precision: "low" }, 20);
-        tracker.remove({ pointerId: 2, point: new Vec2F(100, 50), precision: "low" }, 30);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
+        tracker.change({ pointerId: 2, point: new Vec2F(100, 50), precision: "low", timeStamp: 20 });
+        tracker.remove({ pointerId: 2, point: new Vec2F(100, 50), precision: "low", timeStamp: 30 });
 
         expect(tracker.dragMoves.length).toBe(0);
         expect(tracker.dragEnds.length).toBe(0);
@@ -254,14 +254,9 @@ describe("PointerGestures", () => {
         const startPoint = new Vec2F(50, 50);
         const endPoint = new Vec2F(150, 100);
 
-        tracker.add({ pointerId: 2, point: startPoint, precision: "low" }, 0,
-        );
-        // Move past threshold
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10,
-        );
-        // Move to final position
-        tracker.change({ pointerId: 2, point: endPoint, precision: "low" }, 20,
-        );
+        tracker.add({ pointerId: 2, point: startPoint, precision: "low", timeStamp: 0 });
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
+        tracker.change({ pointerId: 2, point: endPoint, precision: "low", timeStamp: 20 });
 
         const lastMove = tracker.dragMoves[tracker.dragMoves.length - 1];
         const decoded = lastMove.matrix.decode();
@@ -282,11 +277,11 @@ describe("PointerGestures", () => {
       });
 
       try {
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
         // Multiple moves past threshold
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
-        tracker.change({ pointerId: 2, point: new Vec2F(80, 50), precision: "low" }, 20);
-        tracker.change({ pointerId: 2, point: new Vec2F(100, 50), precision: "low" }, 30);
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
+        tracker.change({ pointerId: 2, point: new Vec2F(80, 50), precision: "low", timeStamp: 20 });
+        tracker.change({ pointerId: 2, point: new Vec2F(100, 50), precision: "low", timeStamp: 30 });
 
         expect(tracker.dragStarts.length).toBe(1);
 
@@ -303,9 +298,9 @@ describe("PointerGestures", () => {
       });
       try {
 
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
         // Move past threshold to start drag
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
 
         // Press Escape to cancel the drag
         window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
@@ -327,11 +322,11 @@ describe("PointerGestures", () => {
         e.data = DRAG_DATA;
       });
       try {
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
         // Drag past threshold
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
         // Release
-        tracker.remove({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 20);
+        tracker.remove({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 20 });
 
         await delay(350);
 
@@ -356,13 +351,13 @@ describe("PointerGestures", () => {
       try {
 
         // First pointer down
-        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
 
         // Move past threshold to start drag
-        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low" }, 10);
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
 
         // Add second pointer during active drag (covers line 178)
-        tracker.add({ pointerId: 3, point: new Vec2F(100, 100), precision: "low", }, 20);
+        tracker.add({ pointerId: 3, point: new Vec2F(100, 100), precision: "low", timeStamp: 20 });
 
         expect(tracker.dragMoves.length).toBeGreaterThanOrEqual(2);
 
@@ -377,13 +372,13 @@ describe("PointerGestures", () => {
     const tracker = createGestureTrackerTest<{ item: string }>();
     try {
 
-      tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 0);
+      tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
 
-      tracker.add({ pointerId: 3, point: new Vec2F(100, 100), precision: "low" }, 50);
+      tracker.add({ pointerId: 3, point: new Vec2F(100, 100), precision: "low", timeStamp: 50 });
 
       // Remove both pointers
-      tracker.remove({ pointerId: 2, point: new Vec2F(50, 50), precision: "low" }, 100);
-      tracker.remove({ pointerId: 3, point: new Vec2F(100, 100), precision: "low" }, 100);
+      tracker.remove({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 100 });
+      tracker.remove({ pointerId: 3, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
 
       await delay(350);
 
