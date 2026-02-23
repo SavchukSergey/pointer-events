@@ -14,7 +14,7 @@ export const EMPTY_STATE: IPointersState = {
   altKey: false,
 };
 
-type PointersStateMap = { [key: string]: IPointerState | undefined };
+export type PointersStateMap = { [key: string]: IPointerState };
 
 /**
  * Produces a new state with the given pointers added.

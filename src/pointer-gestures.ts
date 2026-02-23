@@ -3,8 +3,8 @@ import { Multitouch } from "./multitouch";
 import { filter, fromEvent, Subject, type Subscription } from "./observable";
 import {
   EMPTY_STATE,
-  type IPointersState,
-  type IPointerState,
+  type PointersStateMap,
+  type IPointersState
 } from "./pointers-state";
 import type { Vec2F } from "./vec2f";
 
@@ -186,16 +186,19 @@ export class PointerGestures<TDragData> {
     for (const pointerId in state.pointers) {
       activeDistance += state.pointers[pointerId]?.clientDistance || 0;
     }
-    if (activeDistance > this.DRAG_THRESHOLD) {
+    if (activeDistance > this.DRAG_THRESHOLD || state.active > 1) {
       this.cancelLongTapTimeout();
-      const pointer = state.changed;
-      if (!this._dragState && pointer) {
-        const multitouch = new Multitouch().touch(
-          pointer.pointerId.toString(),
-          pointer.start.point,
-        );
+      if (!this._dragState) {
+        const multitouch = new Multitouch();
+        for (const pointerId in state.pointers) {
+          const point = state.pointers[pointerId]?.start?.point;
+          if (point) {
+            multitouch.touch(pointerId, point);
+          }
+        }
         const dragStart: IPointerDragStartEvent<TDragData> = {
-          pointer, multitouch,
+          pointers: state.pointers,
+          multitouch,
           shiftKey: state.shiftKey,
           ctrlKey: state.ctrlKey,
           altKey: state.altKey,
@@ -295,8 +298,8 @@ export interface IPointerTapEvent {
 
 /** Emitted at the start of a drag gesture; consumers may set `data` to opt in. */
 export interface IPointerDragStartEvent<TDragData> {
-  /** The pointer that initiated the drag. */
-  readonly pointer: IPointerState;
+  /** The pointers that initiated the drag. */
+  readonly pointers: PointersStateMap;
   /** The multitouch tracker for this drag session. */
   readonly multitouch: Multitouch;
   readonly shiftKey: boolean;

@@ -154,7 +154,28 @@ describe("PointerGestures", () => {
         tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
 
         expect(tracker.dragStarts.length).toBe(1);
-        expect(tracker.dragStarts[0].pointer.pointerId).toBe(2);
+        expect(tracker.dragStarts[0].pointers[2].pointerId).toBe(2);
+        expect(tracker.dragStarts[0].data).toEqual(DRAG_DATA);
+
+      } finally {
+        subs.unsubscribe();
+        tracker.dispose();
+      }
+    });
+
+    it("should emit dragStart when multiple pointers active", () => {
+      const tracker = createGestureTrackerTest<{ item: string }>();
+      const subs = tracker.events.dragStart$.subscribe((e) => {
+        e.data = DRAG_DATA;
+      });
+      try {
+
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
+        tracker.add({ pointerId: 3, point: new Vec2F(150, 150), precision: "low", timeStamp: 0 });
+
+        expect(tracker.dragStarts.length).toBe(1);
+        expect(tracker.dragStarts[0].pointers[2].pointerId).toBe(2);
+        expect(tracker.dragStarts[0].pointers[3].pointerId).toBe(3);
         expect(tracker.dragStarts[0].data).toEqual(DRAG_DATA);
 
       } finally {
