@@ -3,8 +3,8 @@ import { Multitouch } from "./multitouch";
 import { filter, fromEvent, Subject, type Subscription } from "./observable";
 import {
   EMPTY_STATE,
-  type PointersStateMap,
-  type IPointersState
+  type IPointersState,
+  type PointersStateMap
 } from "./pointers-state";
 import type { Vec2F } from "./vec2f";
 
@@ -196,6 +196,7 @@ export class PointerGestures<TDragData> {
             multitouch.touch(pointerId, point);
           }
         }
+        state = { ...state, added: null }; // prevent dragStart event from re-adding touches to multitouch
         const dragStart: IPointerDragStartEvent<TDragData> = {
           pointers: state.pointers,
           multitouch,
@@ -252,6 +253,10 @@ export class PointerGestures<TDragData> {
       }
 
       return;
+    }
+
+    if (!state.active) {
+      this._dragState = undefined;
     }
 
     const edges = this._edges;

@@ -174,9 +174,11 @@ describe("PointerGestures", () => {
         tracker.add({ pointerId: 3, point: new Vec2F(150, 150), precision: "low", timeStamp: 0 });
 
         expect(tracker.dragStarts.length).toBe(1);
-        expect(tracker.dragStarts[0].pointers[2].pointerId).toBe(2);
-        expect(tracker.dragStarts[0].pointers[3].pointerId).toBe(3);
-        expect(tracker.dragStarts[0].data).toEqual(DRAG_DATA);
+        const dragStart = tracker.dragStarts[0];
+        expect(dragStart.pointers[2].pointerId).toBe(2);
+        expect(dragStart.pointers[3].pointerId).toBe(3);
+        expect(dragStart.data).toEqual(DRAG_DATA);
+        expectMatrix3x3(dragStart.multitouch.eval(), Matrix3x3.identity);
 
       } finally {
         subs.unsubscribe();
@@ -331,6 +333,44 @@ describe("PointerGestures", () => {
         // dragEnd should not have been emitted — the drag was cancelled, not completed
         expect(tracker.dragEnds.length).toBe(0);
 
+      } finally {
+        subs.unsubscribe();
+        tracker.dispose();
+      }
+    });
+
+    it("should allow a confirmed drag after an unconfirmed drag is released", () => {
+      const tracker = createGestureTrackerTest<{ item: string }>();
+      // First drag: no data set → drag is unconfirmed / canceled
+      // Second drag: data set → drag works normally
+      const subs = tracker.events.dragStart$.subscribe((e) => {
+        if (tracker.dragStarts.length === 2) {
+          e.data = DRAG_DATA;
+        }
+        // first dragStart intentionally left without data
+      });
+      try {
+        // --- unconfirmed drag ---
+        tracker.add({ pointerId: 2, point: new Vec2F(50, 50), precision: "low", timeStamp: 0 });
+        tracker.change({ pointerId: 2, point: new Vec2F(65, 50), precision: "low", timeStamp: 10 });
+        tracker.change({ pointerId: 2, point: new Vec2F(100, 50), precision: "low", timeStamp: 20 });
+        tracker.remove({ pointerId: 2, point: new Vec2F(100, 50), precision: "low", timeStamp: 30 });
+
+        expect(tracker.dragStarts.length).toBe(1);
+        expect(tracker.dragMoves.length).toBe(0);
+        expect(tracker.dragEnds.length).toBe(0);
+
+        // --- confirmed drag ---
+        tracker.add({ pointerId: 2, point: new Vec2F(10, 10), precision: "low", timeStamp: 100 });
+        tracker.change({ pointerId: 2, point: new Vec2F(25, 10), precision: "low", timeStamp: 110 });
+        tracker.change({ pointerId: 2, point: new Vec2F(40, 10), precision: "low", timeStamp: 120 });
+        tracker.remove({ pointerId: 2, point: new Vec2F(40, 10), precision: "low", timeStamp: 130 });
+
+        expect(tracker.dragStarts.length).toBe(2);
+        expect(tracker.dragStarts[1].data).toEqual(DRAG_DATA);
+        expect(tracker.dragMoves.length).toBeGreaterThan(0);
+        expect(tracker.dragEnds.length).toBe(1);
+        expect(tracker.dragEnds[0].data).toEqual(DRAG_DATA);
       } finally {
         subs.unsubscribe();
         tracker.dispose();
