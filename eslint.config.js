@@ -66,6 +66,7 @@ export default tseslint.config(
       ],
       quotes: ["error", "double"],
       semi: ["error", "always"],
+      "comma-dangle": ["error", "never"],
     },
   },
 );

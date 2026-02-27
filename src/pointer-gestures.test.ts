@@ -1,16 +1,16 @@
 import { expectMatrix3x3 } from "./asserts";
 import { Matrix3x3 } from "./matrix3x3";
 import { Subscription } from "./observable";
-import type { IPointerDragCancelEvent, IPointerDragEvent, IPointerDragStartEvent, IPointerDropEvent, IPointerTapEvent } from "./pointer-gestures";
+import type { IPointerDragCancelEvent, IPointerDragEvent, IPointerDragStartEvent, IPointerDropEvent, IPointerGesturesOptions, IPointerTapEvent } from "./pointer-gestures";
 import { PointerGestures } from "./pointer-gestures";
 import type { IPointerChangeEvent } from "./pointers-state";
 import { addPointerState, changePointerState, EMPTY_STATE, removePointerState } from "./pointers-state";
 import { Vec2F } from "./vec2f";
 
 describe("PointerGestures", () => {
-  function createGestureTrackerTest<TDragData = unknown>() {
+  function createGestureTrackerTest<TDragData = unknown>(options?: Partial<IPointerGesturesOptions>) {
     let state = EMPTY_STATE;
-    const events = new PointerGestures<TDragData>();
+    const events = options ? new PointerGestures<TDragData>(options) : new PointerGestures<TDragData>();
 
     const taps: IPointerTapEvent[] = [];
     const doubleTaps: IPointerTapEvent[] = [];
@@ -53,7 +53,7 @@ describe("PointerGestures", () => {
       },
       dispose() {
         subscription.unsubscribe();
-      },
+      }
     };
   }
 
@@ -448,6 +448,52 @@ describe("PointerGestures", () => {
     } finally {
       tracker.dispose();
     }
+  });
+
+  describe("disable long taps (longTapTimeWindow: Infinity)", () => {
+    it("should not emit a long tap when longTapTimeWindow is Infinity", async () => {
+      const tracker = createGestureTrackerTest({ longTapTimeWindow: Infinity });
+      try {
+        tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+        await delay(1200); // more than the default 1000 ms threshold
+        expect(tracker.longTaps.length).toBe(0);
+      } finally {
+        tracker.dispose();
+      }
+    });
+
+    it("should emit a tap instead of a long tap after a long hold and release", async () => {
+      const tracker = createGestureTrackerTest({ longTapTimeWindow: Infinity });
+      try {
+        tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+        await delay(1200);
+        // timeLeft = doubleTapTimeWindow(300) - timeSpent(1200) <= 0 → tap fires synchronously
+        tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 1200 });
+
+        expect(tracker.longTaps.length).toBe(0);
+        expect(tracker.taps.length).toBe(1);
+      } finally {
+        tracker.dispose();
+      }
+    });
+  });
+
+  describe("disable double taps (doubleTapTimeWindow: 0)", () => {
+    it("should not emit a double tap when doubleTapTimeWindow is 0", async () => {
+      const tracker = createGestureTrackerTest({ doubleTapTimeWindow: 0 });
+      try {
+        tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 0 });
+        tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 50 });
+        tracker.add({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 100 });
+        tracker.remove({ pointerId: 1, point: new Vec2F(100, 100), precision: "low", timeStamp: 150 });
+
+        expect(tracker.doubleTaps.length).toBe(0);
+        expect(tracker.taps.length).toBe(2);
+      } finally {
+        tracker.dispose();
+      }
+    });
+
   });
 });
 

@@ -27,8 +27,8 @@ export class Multitouch {
       this.startMove([
         ...this.touches, {
           id,
-          point,
-        },
+          point
+        }
       ]);
     }
     return this;
@@ -43,7 +43,7 @@ export class Multitouch {
   public move(id: string, point: Vec2F): Multitouch {
     this.touches = this.touches.map((touch) => touch.id === id ? {
       id,
-      point,
+      point
     } : touch);
     return this;
   }
@@ -87,7 +87,7 @@ export class Multitouch {
       const matrix = buildMatrix(touches);
       this.start = {
         matrix,
-        inverseMatrix: matrix.inverse(),
+        inverseMatrix: matrix.inverse()
       };
     }
     this.touches = touches;
@@ -138,6 +138,6 @@ function buildMatrix(touches: readonly ITouchInfo[]): Matrix3x3 {
     pointC.y,
     1,
     1,
-    1,
+    1
   );
 }

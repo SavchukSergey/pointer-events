@@ -5,7 +5,7 @@ import {
   changePointerState,
   createPointersState,
   EMPTY_STATE,
-  removePointerState,
+  removePointerState
 } from "./pointers-state";
 import { Vec2F } from "./vec2f";
 
@@ -19,7 +19,7 @@ function dispatchPointerEvent(
   type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
   pointerId: number,
   pointerType: "touch" | "pen",
-  clientPosition: Vec2F,
+  clientPosition: Vec2F
 ): PointerEvent {
   const ev = new PointerEvent(type, {
     bubbles: true,
@@ -27,7 +27,7 @@ function dispatchPointerEvent(
     pointerId,
     pointerType,
     clientX: clientPosition.x,
-    clientY: clientPosition.y,
+    clientY: clientPosition.y
   });
   target.dispatchEvent(ev);
   return ev;
@@ -53,7 +53,7 @@ function expectPointersState(actual: IPointersState, expected: IPointersState) {
 
 function expectPointerState(
   actual: IPointerState | undefined,
-  expected: IPointerState | undefined,
+  expected: IPointerState | undefined
 ) {
   if (!!actual !== !!expected) {
     throw new Error(`expected: ${expected}, but actual: ${actual}`);
@@ -101,12 +101,12 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
           timeStamp: -1,
           start: {
             point: center,
-            timeStamp: -1,
+            timeStamp: -1
           },
           prev: null,
           precision,
-          clientDistance: 0,
-        },
+          clientDistance: 0
+        }
       },
       active: 1,
       added: null,
@@ -115,7 +115,7 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
       removed: null,
       shiftKey: false,
       ctrlKey: false,
-      altKey: false,
+      altKey: false
     });
 
     expectPointersState(states[1], {
@@ -126,15 +126,15 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
           timeStamp: -1,
           start: {
             point: center,
-            timeStamp: -1,
+            timeStamp: -1
           },
           prev: {
             point: center,
-            timeStamp: -1,
+            timeStamp: -1
           },
           precision,
-          clientDistance: 10,
-        },
+          clientDistance: 10
+        }
       },
       active: 1,
       added: null,
@@ -143,7 +143,7 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
       removed: null,
       shiftKey: false,
       ctrlKey: false,
-      altKey: false,
+      altKey: false
     });
 
     expectPointersState(states[2], {
@@ -155,7 +155,7 @@ function checkSimpleMove(pointerId: number, pointerType: "touch") {
       removed: null,
       shiftKey: false,
       ctrlKey: false,
-      altKey: false,
+      altKey: false
     });
 
     document.body.removeChild(elem);
@@ -374,14 +374,14 @@ describe("createPointersState", () => {
 
     const moveEvent = new PointerEvent("pointermove", {
       bubbles: true, cancelable: true, pointerId: 1, pointerType: "touch",
-      clientX: 60, clientY: 60,
+      clientX: 60, clientY: 60
     });
     moveEvent.preventDefault();
     elem.dispatchEvent(moveEvent);
 
     const upEvent = new PointerEvent("pointerup", {
       bubbles: true, cancelable: true, pointerId: 1, pointerType: "touch",
-      clientX: 60, clientY: 60,
+      clientX: 60, clientY: 60
     });
     upEvent.preventDefault();
     elem.dispatchEvent(upEvent);

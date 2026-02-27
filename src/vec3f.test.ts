@@ -11,14 +11,14 @@ describe("vec3f", () => {
   it("should add", () => {
     expectVec3F(
       new Vec3F(10, 20, 30).add(new Vec3F(-2, 12, 4)),
-      new Vec3F(8, 32, 34),
+      new Vec3F(8, 32, 34)
     );
   });
 
   it("should sub", () => {
     expectVec3F(
       new Vec3F(10, 20, 30).sub(new Vec3F(-2, 12, 4)),
-      new Vec3F(12, 8, 26),
+      new Vec3F(12, 8, 26)
     );
   });
 

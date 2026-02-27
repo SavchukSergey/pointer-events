@@ -7,7 +7,7 @@ describe("Multitouch", () => {
   function testMultitouch(
     pointA?: [Vec2F, Vec2F],
     pointB?: [Vec2F, Vec2F],
-    pointC?: [Vec2F, Vec2F],
+    pointC?: [Vec2F, Vec2F]
   ) {
     const multitouch = new Multitouch();
 
@@ -49,14 +49,14 @@ describe("Multitouch", () => {
     testMultitouch(
       [new Vec2F(10, 10), new Vec2F(10, 10)],
       [new Vec2F(20, 10), new Vec2F(30, 10)],
-      [new Vec2F(10, 20), new Vec2F(10, 30)],
+      [new Vec2F(10, 20), new Vec2F(10, 30)]
     );
   });
 
   it("should evaluate 2-touch scale", () => {
     const matrix = testMultitouch(
       [new Vec2F(-10, -10), new Vec2F(-20, -20)],
-      [new Vec2F(10, 10), new Vec2F(20, 20)],
+      [new Vec2F(10, 10), new Vec2F(20, 20)]
     );
     expectMatrix3x3(matrix, Matrix3x3.scaleAll(2));
   });
@@ -80,21 +80,21 @@ describe("Multitouch", () => {
     testMultitouch(
       [new Vec2F(10, 10), new Vec2F(30, 20)],
       [new Vec2F(20, 10), new Vec2F(40, 20)],
-      [new Vec2F(10, 20), new Vec2F(30, 30)],
+      [new Vec2F(10, 20), new Vec2F(30, 30)]
     );
   });
 
   it("should evaluate 2-touch shift", () => {
     testMultitouch(
       [new Vec2F(10, 10), new Vec2F(30, 20)],
-      [new Vec2F(20, 10), new Vec2F(40, 20)],
+      [new Vec2F(20, 10), new Vec2F(40, 20)]
     );
   });
 
   it("should evaluate 2-touch scale", () => {
     testMultitouch(
       [new Vec2F(10, 10), new Vec2F(30, 30)],
-      [new Vec2F(20, 10), new Vec2F(60, 20)],
+      [new Vec2F(20, 10), new Vec2F(60, 20)]
     );
   });
 

@@ -50,6 +50,12 @@ pointers$.subscribe((state) => {
 });
 ```
 
+Make sure html element you are targeting has css
+
+```css 
+    touch-action: none;
+```
+
 ## API
 
 ### `createPointersState(node: Element): Observable<IPointersState>`
@@ -88,6 +94,25 @@ subscription.unsubscribe();
 A gesture recogniser that consumes `IPointersState` snapshots and emits high-level gesture events.
 
 `TDragData` is a generic type parameter for the application-specific data attached to drag operations.
+
+#### Options
+
+`PointerGestures` accepts an optional configuration object:
+
+```ts
+const gestures = new PointerGestures({
+  doubleTapTimeWindow: 300,  // ms — set to 0 to disable double-tap detection
+  longTapTimeWindow: 1000,   // ms — set to Infinity to disable long-tap detection
+  dragThreshold: 10,         // px — minimum movement before a drag begins
+});
+```
+
+**Tap responsiveness trade-off**
+
+Detecting double taps and long taps introduces latency for regular taps:
+
+- **Double-tap detection** — after every pointer release the recogniser waits up to `doubleTapTimeWindow` ms before emitting `taps$`, in case a second tap follows. If your UI does not need double taps, set `doubleTapTimeWindow: 0` to emit single taps immediately with no delay.
+- **Long-tap detection** — after every pointer down the recogniser holds a timer for `longTapTimeWindow` ms. During that time no other gesture fires from that pointer down. If your UI does not need long taps, set `longTapTimeWindow: Infinity` to skip the timer entirely, which also makes drag detection start sooner.
 
 #### Tap gestures
 
@@ -201,11 +226,13 @@ mt.untouch("finger-2");
 
 ## Gesture detection thresholds
 
-| Gesture | Threshold |
-|---|---|
-| Drag | > 10px total pointer distance |
-| Double-tap | Both taps within 300ms |
-| Long-tap | Pointer held for 1000ms |
+All thresholds are configurable via `IPointerGesturesOptions`.
+
+| Gesture | Default | Option | Disable with |
+|---|---|---|---|
+| Drag | > 10 px movement | `dragThreshold` | — |
+| Double-tap | Both taps within 300 ms | `doubleTapTimeWindow` | `0` |
+| Long-tap | Pointer held for 1000 ms | `longTapTimeWindow` | `Infinity` |
 
 ## License
 

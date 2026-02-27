@@ -9,7 +9,7 @@ import {
 import type { Vec2F } from "./vec2f";
 
 const cancel$ = fromEvent<KeyboardEvent>(window, "keydown").pipe(
-  filter((kb) => kb.key === "Escape"),
+  filter((kb) => kb.key === "Escape")
 );
 
 /**
@@ -34,19 +34,23 @@ export class PointerGestures<TDragData> {
   /** Emits when a drag is cancelled (e.g. by pressing Escape). */
   public readonly dragCancel$ = new Subject<IPointerDragCancelEvent<TDragData>>();
 
-  private readonly _edges: [
-    IPointersState,
-    IPointersState,
-    IPointersState,
-    IPointersState,
-  ] = [EMPTY_STATE, EMPTY_STATE, EMPTY_STATE, EMPTY_STATE];
+  private readonly _edges: [IPointersState, IPointersState, IPointersState, IPointersState] = [EMPTY_STATE, EMPTY_STATE, EMPTY_STATE, EMPTY_STATE];
   private _doubleTapTimeout: number | undefined;
   private _longTapTimeout: number | undefined;
   private _dragState: IDragState<TDragData> | undefined;
 
-  private readonly DOUBLE_TAP_TIME_WINDOW = 300;
-  private readonly LONG_TAP_TIME_WINDOW = 1000;
-  private readonly DRAG_THRESHOLD = 10;
+  private readonly options: IPointerGesturesOptions;
+
+  constructor(options: Partial<IPointerGesturesOptions> = {}) {
+    this.options = {
+      ...{
+        doubleTapTimeWindow: 300,
+        longTapTimeWindow: 1000,
+        dragThreshold: 10
+      },
+      ...options
+    }
+  }
 
   /**
    * Resets the edge history buffer to empty states.
@@ -113,12 +117,12 @@ export class PointerGestures<TDragData> {
     if (edgesHistory[0].active && !edgesHistory[1].active && raisingEdge.active && !fallingEdge.active && added) {
       const duration = edgesHistory[3].timeStamp - edgesHistory[0].timeStamp;
       const removed = fallingEdge.removed;
-      if (duration <= this.DOUBLE_TAP_TIME_WINDOW && removed) {
+      if (duration <= this.options.doubleTapTimeWindow && removed) {
         const event: IPointerTapEvent = {
           pointerId: added.pointerId.toString(),
           point: removed.point,
           precision: added.precision,
-          timeStamp: fallingEdge.timeStamp,
+          timeStamp: fallingEdge.timeStamp
         };
         this.reset();
         this.doubleTaps$.next(event);
@@ -141,19 +145,19 @@ export class PointerGestures<TDragData> {
     const removed = fallingEdge.removed;
     if (edgesHistory[2].active && !edgesHistory[3].active && added && removed) {
       const distance = removed.clientDistance;
-      if (distance < this.DRAG_THRESHOLD) {
+      if (distance < this.options.dragThreshold) {
         const timeSpent = fallingEdge.timeStamp - raisingEdge.timeStamp;
-        const timeLeft = this.DOUBLE_TAP_TIME_WINDOW - timeSpent;
+        const timeLeft = this.options.doubleTapTimeWindow - timeSpent;
         this.cancelDoubleTapTimeout();
-        this._doubleTapTimeout = setTimeout(() => {
+        this._doubleTapTimeout = timeout(() => {
           this.reset();
           this.taps$.next({
             pointerId: added.pointerId.toString(),
             point: removed.point,
             precision: added.precision,
-            timeStamp: fallingEdge.timeStamp,
+            timeStamp: fallingEdge.timeStamp
           });
-        }, timeLeft) as unknown as number;
+        }, timeLeft);
       }
     }
   }
@@ -164,7 +168,10 @@ export class PointerGestures<TDragData> {
    * @param multitouch - The multitouch tracker to update.
    * @param state - The current pointer state.
    */
-  private updateMultitouch(multitouch: Multitouch, state: IPointersState): void {
+  private updateMultitouch(
+    multitouch: Multitouch,
+    state: IPointersState
+  ): void {
     if (state.removed) {
       multitouch.untouch(state.removed.pointerId.toString());
     }
@@ -186,7 +193,7 @@ export class PointerGestures<TDragData> {
     for (const pointerId in state.pointers) {
       activeDistance += state.pointers[pointerId]?.clientDistance || 0;
     }
-    if (activeDistance > this.DRAG_THRESHOLD || state.active > 1) {
+    if (activeDistance > this.options.dragThreshold || state.active > 1) {
       this.cancelLongTapTimeout();
       if (!this._dragState) {
         const multitouch = new Multitouch();
@@ -202,7 +209,7 @@ export class PointerGestures<TDragData> {
           multitouch,
           shiftKey: state.shiftKey,
           ctrlKey: state.ctrlKey,
-          altKey: state.altKey,
+          altKey: state.altKey
         };
         this.dragStart$.next(dragStart);
         if (dragStart.data) {
@@ -217,12 +224,12 @@ export class PointerGestures<TDragData> {
             payload: {
               data,
               multitouch,
-              cancelSubscription,
-            },
+              cancelSubscription
+            }
           };
         } else {
           this._dragState = {
-            payload: undefined, // client does not support drag&drop
+            payload: undefined // client does not support drag&drop
           };
         }
       }
@@ -238,7 +245,7 @@ export class PointerGestures<TDragData> {
           matrix,
           shiftKey: state.shiftKey,
           ctrlKey: state.ctrlKey,
-          altKey: state.altKey,
+          altKey: state.altKey
         });
       } else {
         this.dragEnd$.next({
@@ -246,7 +253,7 @@ export class PointerGestures<TDragData> {
           matrix,
           shiftKey: state.shiftKey,
           ctrlKey: state.ctrlKey,
-          altKey: state.altKey,
+          altKey: state.altKey
         });
         this._dragState.payload.cancelSubscription.unsubscribe();
         this._dragState = undefined;
@@ -271,15 +278,15 @@ export class PointerGestures<TDragData> {
       const added = state.added;
       if (state.active && added) {
         this.cancelLongTapTimeout();
-        this._longTapTimeout = setTimeout(() => {
+        this._longTapTimeout = timeout(() => {
           this.reset();
           this.longTaps$.next({
             pointerId: added.pointerId.toString(),
             point: added.point,
             precision: added.precision,
-            timeStamp: state.timeStamp,
+            timeStamp: state.timeStamp
           });
-        }, this.LONG_TAP_TIME_WINDOW) as unknown as number;
+        }, this.options.longTapTimeWindow);
       } else {
         if (!this.matchDoubleTap()) {
           this.matchTap();
@@ -289,6 +296,17 @@ export class PointerGestures<TDragData> {
   }
 }
 
+function timeout(func: () => void, time: number): number {
+  if (time === Infinity) {
+    return 0;
+  }
+  if (time <= 0) {
+    func();
+    return 0;
+  } else {
+    return setTimeout(func, time) as unknown as number;
+  }
+}
 /** Describes a tap gesture event (single, double, or long). */
 export interface IPointerTapEvent {
   /** The identifier of the pointer that performed the tap. */
@@ -331,7 +349,6 @@ export interface IPointerDragEvent<TDragData> {
 export interface IPointerDragCancelEvent<TDragData> {
   /** The application-specific drag data. */
   readonly data: TDragData;
-
 }
 
 /** Emitted when all pointers are released, completing the drag. */
@@ -355,4 +372,13 @@ interface IDragStatePayload<TDragState> {
   readonly data: TDragState;
   readonly multitouch: Multitouch;
   readonly cancelSubscription: Subscription;
+}
+
+export interface IPointerGesturesOptions {
+  /** Time in milliseconds to detect double taps. Set to zero to disable */
+  readonly doubleTapTimeWindow: number;
+  /** Time in milliseconds to detect long taps. Set to Infinity to disable */
+  readonly longTapTimeWindow: number;
+  /** Distance pointer moved after which gesture is considered a drag */
+  readonly dragThreshold: number;
 }

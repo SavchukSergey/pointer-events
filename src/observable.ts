@@ -29,7 +29,7 @@ export class Subscription {
 /** A lazy push collection: subscribing runs the setup function and returns a Subscription. */
 export class Observable<T> {
   constructor(
-    private readonly _setup: (subscriber: { next: Subscriber<T> }) => SubscriptionTearDown | void,
+    private readonly _setup: (subscriber: { next: Subscriber<T> }) => SubscriptionTearDown | void
   ) { }
 
   subscribe(callback: Subscriber<T>): Subscription {
@@ -38,13 +38,13 @@ export class Observable<T> {
     const teardown = this._setup({
       next: (value: T) => {
         if (active) callback(value);
-      },
+      }
     });
     sub.add({
       unsubscribe: () => {
         active = false;
         teardown?.();
-      },
+      }
     });
     return sub;
   }
@@ -79,7 +79,7 @@ export class Subject<T> extends Observable<T> {
 export function fromEvent<T extends Event>(
   target: EventTarget,
   eventName: string,
-  options?: AddEventListenerOptions,
+  options?: AddEventListenerOptions
 ): Observable<T> {
   return new Observable<T>((subscriber) => {
     const handler = (event: Event) => subscriber.next(event as T);

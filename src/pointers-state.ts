@@ -11,7 +11,7 @@ export const EMPTY_STATE: IPointersState = {
   removed: null,
   shiftKey: false,
   ctrlKey: false,
-  altKey: false,
+  altKey: false
 };
 
 export type PointersStateMap = { [key: string]: IPointerState };
@@ -31,11 +31,11 @@ export function addPointerState(state: IPointersState, event: IPointerChangeEven
     timeStamp: event.timeStamp,
     start: {
       point: event.point,
-      timeStamp: event.timeStamp,
+      timeStamp: event.timeStamp
     },
     prev: null,
     precision: event.precision,
-    clientDistance: 0,
+    clientDistance: 0
   };
 
   return {
@@ -51,7 +51,7 @@ export function addPointerState(state: IPointersState, event: IPointerChangeEven
     removed: null,
     shiftKey: event.shiftKey ?? false,
     ctrlKey: event.ctrlKey ?? false,
-    altKey: event.altKey ?? false,
+    altKey: event.altKey ?? false
   };
 }
 
@@ -71,10 +71,10 @@ export function changePointerState(state: IPointersState, event: IPointerChangeE
     start: oldPointer.start,
     prev: {
       point: oldPointer.point,
-      timeStamp: oldPointer.timeStamp,
+      timeStamp: oldPointer.timeStamp
     },
     precision: event.precision,
-    clientDistance: oldPointer.clientDistance + event.point.sub(oldPointer.point).length(),
+    clientDistance: oldPointer.clientDistance + event.point.sub(oldPointer.point).length()
   } : undefined;
 
   return {
@@ -89,7 +89,7 @@ export function changePointerState(state: IPointersState, event: IPointerChangeE
     removed: null,
     shiftKey: event.shiftKey ?? false,
     ctrlKey: event.ctrlKey ?? false,
-    altKey: event.altKey ?? false,
+    altKey: event.altKey ?? false
   };
 }
 
@@ -112,7 +112,7 @@ export function removePointerState(state: IPointersState, event: IPointerChangeE
     removed: oldPointer || null,
     shiftKey: event.shiftKey ?? false,
     ctrlKey: event.ctrlKey ?? false,
-    altKey: event.altKey ?? false,
+    altKey: event.altKey ?? false
   };
 }
 
@@ -187,7 +187,7 @@ function getPointerPosition(event: PointerEvent): IPointerChangeEvent {
     timeStamp: event.timeStamp,
     shiftKey: event.shiftKey,
     ctrlKey: event.ctrlKey,
-    altKey: event.altKey,
+    altKey: event.altKey
   };
 }
 

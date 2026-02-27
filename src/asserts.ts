@@ -3,7 +3,7 @@ import type { Vec2F } from "./vec2f";
 
 export function expectVec2F(
   actual: Vec2F | undefined | null,
-  expected: Vec2F | undefined | null,
+  expected: Vec2F | undefined | null
 ) {
   if (!!actual !== !!expected) {
     fail(`expected: ${actual}, but actual: ${actual}`);

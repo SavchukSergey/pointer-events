@@ -24,11 +24,11 @@ describe("Matrix3x3", () => {
   it("should calculate inverse", () => {
     expectMatrix3x3(
       new Matrix3x3(3, 0, 2, 2, 0, -2, 0, 1, 1).inverse(),
-      new Matrix3x3(0.2, 0.2, 0, -0.2, 0.3, 1, 0.2, -0.3, 0),
+      new Matrix3x3(0.2, 0.2, 0, -0.2, 0.3, 1, 0.2, -0.3, 0)
     );
     expectMatrix3x3(
       new Matrix3x3(1, 2, 3, 0, 1, 4, 5, 6, 0).inverse(),
-      new Matrix3x3(-24, 18, 5, 20, -15, -4, -5, 4, 1),
+      new Matrix3x3(-24, 18, 5, 20, -15, -4, -5, 4, 1)
     );
   });
 
@@ -36,7 +36,7 @@ describe("Matrix3x3", () => {
     const actual = Matrix3x3.rotate((30 * Math.PI) / 180);
     expectMatrix3x3(
       actual,
-      new Matrix3x3(0.866025, -0.5, 0, 0.5, 0.866025, 0, 0, 0, 1),
+      new Matrix3x3(0.866025, -0.5, 0, 0.5, 0.866025, 0, 0, 0, 1)
     );
   });
 

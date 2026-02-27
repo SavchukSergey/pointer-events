@@ -29,7 +29,7 @@ export class Matrix3x3 {
     public readonly m23: number,
     public readonly m31: number,
     public readonly m32: number,
-    public readonly m33: number,
+    public readonly m33: number
   ) {}
 
   /**
@@ -97,7 +97,7 @@ export class Matrix3x3 {
       this.m23 * k,
       this.m31 * k,
       this.m32 * k,
-      this.m33 * k,
+      this.m33 * k
     );
   }
 
@@ -118,7 +118,7 @@ export class Matrix3x3 {
 
       this.m31 * other.m11 + this.m32 * other.m21 + this.m33 * other.m31,
       this.m31 * other.m12 + this.m32 * other.m22 + this.m33 * other.m32,
-      this.m31 * other.m13 + this.m32 * other.m23 + this.m33 * other.m33,
+      this.m31 * other.m13 + this.m32 * other.m23 + this.m33 * other.m33
     );
   }
 
@@ -131,7 +131,7 @@ export class Matrix3x3 {
     return new Vec3F(
       this.m11 * other.x + this.m12 * other.y + this.m13 * other.z,
       this.m21 * other.x + this.m22 * other.y + this.m23 * other.z,
-      this.m31 * other.x + this.m32 * other.y + this.m33 * other.z,
+      this.m31 * other.x + this.m32 * other.y + this.m33 * other.z
     );
   }
 
@@ -143,7 +143,7 @@ export class Matrix3x3 {
   public mulV2(other: Vec2F): Vec2F {
     return new Vec2F(
       this.m11 * other.x + this.m12 * other.y + this.m13,
-      this.m21 * other.x + this.m22 * other.y + this.m23,
+      this.m21 * other.x + this.m22 * other.y + this.m23
     );
   }
 
@@ -161,7 +161,7 @@ export class Matrix3x3 {
       this.m32,
       this.m13,
       this.m23,
-      this.m33,
+      this.m33
     );
   }
 
@@ -191,7 +191,7 @@ export class Matrix3x3 {
       rotate,
       scale,
       scaleX,
-      scaleY,
+      scaleY
     };
   }
 
@@ -293,7 +293,7 @@ export class Matrix3x3 {
       this.getMinor23(),
       this.getMinor31(),
       this.getMinor32(),
-      this.getMinor33(),
+      this.getMinor33()
     );
   }
 
@@ -311,7 +311,7 @@ export class Matrix3x3 {
       -this.getMinor23(),
       this.getMinor31(),
       -this.getMinor32(),
-      this.getMinor33(),
+      this.getMinor33()
     );
   }
 
