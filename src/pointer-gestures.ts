@@ -49,7 +49,7 @@ export class PointerGestures<TDragData> {
         dragThreshold: 10
       },
       ...options
-    }
+    };
   }
 
   /**

@@ -1,7 +1,6 @@
 import { expectMatrix3x3, expectVec2F } from "./asserts";
 import { Matrix3x3 } from "./matrix3x3";
 import { Vec2F } from "./vec2f";
-import { Vec3F } from "./vec3f";
 
 describe("Matrix3x3", () => {
   it("should calculate determinant", () => {
@@ -103,41 +102,4 @@ describe("Matrix3x3", () => {
     expect(decode.scaleX).toBe(0);
   });
 
-  it("should multiply matrix by Vec3F", () => {
-    const matrix = new Matrix3x3(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    const vec = new Vec3F(2, 3, 4);
-    const result = matrix.mulV3(vec);
-    // row1: 1*2 + 2*3 + 3*4 = 20
-    // row2: 4*2 + 5*3 + 6*4 = 47
-    // row3: 7*2 + 8*3 + 9*4 = 74
-    expect(result.x).toBeCloseTo(20);
-    expect(result.y).toBeCloseTo(47);
-    expect(result.z).toBeCloseTo(74);
-  });
-
-  it("should multiply identity matrix by Vec3F", () => {
-    const vec = new Vec3F(5, 10, 15);
-    const result = Matrix3x3.identity.mulV3(vec);
-    expect(result.x).toBeCloseTo(5);
-    expect(result.y).toBeCloseTo(10);
-    expect(result.z).toBeCloseTo(15);
-  });
-
-  it("should multiply scale matrix by Vec3F", () => {
-    const matrix = Matrix3x3.scale(3, 4);
-    const vec = new Vec3F(2, 5, 1);
-    const result = matrix.mulV3(vec);
-    expect(result.x).toBeCloseTo(6);
-    expect(result.y).toBeCloseTo(20);
-    expect(result.z).toBeCloseTo(1);
-  });
-
-  it("should multiply rotation matrix by Vec3F", () => {
-    const matrix = Matrix3x3.rotate(Math.PI / 2); // 90 degrees
-    const vec = new Vec3F(1, 0, 1);
-    const result = matrix.mulV3(vec);
-    expect(result.x).toBeCloseTo(0);
-    expect(result.y).toBeCloseTo(1);
-    expect(result.z).toBeCloseTo(1);
-  });
 });

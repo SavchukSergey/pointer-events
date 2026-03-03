@@ -1,5 +1,4 @@
 import { Vec2F } from "./vec2f";
-import { Vec3F } from "./vec3f";
 
 /**
  * An immutable 3x3 matrix for 2D affine transformations
@@ -122,18 +121,6 @@ export class Matrix3x3 {
     );
   }
 
-  /**
-   * Multiplies this matrix by a 3D vector.
-   * @param other - The vector to transform.
-   * @returns The transformed 3D vector.
-   */
-  public mulV3(other: Vec3F): Vec3F {
-    return new Vec3F(
-      this.m11 * other.x + this.m12 * other.y + this.m13 * other.z,
-      this.m21 * other.x + this.m22 * other.y + this.m23 * other.z,
-      this.m31 * other.x + this.m32 * other.y + this.m33 * other.z
-    );
-  }
 
   /**
    * Multiplies this matrix by a 2D vector (implicitly `z = 1`).
@@ -327,6 +314,10 @@ export class Matrix3x3 {
     const angle = Math.atan2(vec.y, vec.x);
 
     return angle < 0 ? angle + 2 * Math.PI : angle;
+  }
+
+  public toString() {
+    return `matrix(${this.m11}, ${this.m21}, ${this.m12}, ${this.m22}, ${this.m13}, ${this.m23})`;
   }
 }
 
