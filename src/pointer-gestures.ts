@@ -1,4 +1,4 @@
-import type { Matrix3x3 } from "./matrix3x3";
+import type { Matrix3x3 } from "./math/matrix3x3";
 import { Multitouch } from "./multitouch";
 import { filter, fromEvent, Subject, type Subscription } from "./observable";
 import {

@@ -1,6 +1,6 @@
-import { expectMatrix3x3, expectVec2F } from "./asserts";
+import { expectMatrix3x3, expectVec2F } from "../asserts";
 import { Matrix3x3 } from "./matrix3x3";
-import { Vec2F } from "./vec2f";
+import { Vec2F } from "../vec2f";
 
 describe("Matrix3x3", () => {
   it("should calculate determinant", () => {

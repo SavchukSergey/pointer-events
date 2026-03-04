@@ -1,4 +1,4 @@
-import { Matrix3x3 } from "./matrix3x3";
+import { Matrix3x3 } from "./math/matrix3x3";
 import { Vec2F } from "./vec2f";
 
 /**

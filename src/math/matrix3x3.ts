@@ -1,4 +1,4 @@
-import { Vec2F } from "./vec2f";
+import { Vec2F } from "../vec2f";
 
 /**
  * An immutable 3x3 matrix for 2D affine transformations
@@ -120,7 +120,6 @@ export class Matrix3x3 {
       this.m31 * other.m13 + this.m32 * other.m23 + this.m33 * other.m33
     );
   }
-
 
   /**
    * Multiplies this matrix by a 2D vector (implicitly `z = 1`).

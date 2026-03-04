@@ -1,5 +1,5 @@
 import { expectMatrix3x3 } from "./asserts";
-import { Matrix3x3 } from "./matrix3x3";
+import { Matrix3x3 } from "./math/matrix3x3";
 import { Subscription } from "./observable";
 import type { IPointerDragCancelEvent, IPointerDragEvent, IPointerDragStartEvent, IPointerDropEvent, IPointerGesturesOptions, IPointerTapEvent } from "./pointer-gestures";
 import { PointerGestures } from "./pointer-gestures";

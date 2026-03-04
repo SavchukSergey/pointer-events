@@ -1,5 +1,5 @@
 import { expectMatrix3x3, expectVec2F } from "./asserts";
-import { Matrix3x3 } from "./matrix3x3";
+import { Matrix3x3 } from "./math/matrix3x3";
 import { Multitouch } from "./multitouch";
 import { Vec2F } from "./vec2f";
 

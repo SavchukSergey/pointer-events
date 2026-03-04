@@ -1,4 +1,4 @@
-import type { Matrix3x3 } from "./matrix3x3";
+import type { Matrix3x3 } from "./math/matrix3x3";
 import type { Vec2F } from "./vec2f";
 
 export function expectVec2F(
