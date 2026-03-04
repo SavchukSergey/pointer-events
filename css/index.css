@@ -1,3 +1,7 @@
+body {
+    background-color: grey;
+}
+
 .container {
     touch-action: none;
     overflow: hidden;
@@ -10,7 +14,21 @@
     overflow: hidden;
     user-select: none;
     position: fixed;
+    top: 0;
+    left: 0;
     transform-origin: top left;
+}
+
+.controls {
+    position: fixed;
+    right: 16px;
+    top: 16px;
+    background-color: white;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 4px;
 }
 
 .touch {

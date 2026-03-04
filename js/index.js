@@ -1,4 +1,4 @@
-import { PointerGestures, createPointersState } from "/dist/index.js";
+import { createPointersState, PointerGestures, unrotate, unscale, unskew } from "/dist/index.js";
 
 const containerNode = document.querySelector(".container");
 const targetNode = document.querySelector(".target");
@@ -11,7 +11,6 @@ const pointers$ = createPointersState(containerNode);
 
 const gestures = new PointerGestures();
 
-
 gestures.dragStart$.subscribe((ev) => {
   ev.data = {};
 });
@@ -19,17 +18,26 @@ gestures.dragStart$.subscribe((ev) => {
 let accMatrix = null;
 
 function updateUiMatrix(matrix) {
-  targetNode.style.transform = matrix
-    ? `matrix(${matrix.m11}, ${matrix.m21}, ${matrix.m12}, ${matrix.m22}, ${matrix.m13}, ${matrix.m23})`
-    : undefined;
+  if (matrix) {
+    if (!chkZoom.checked) {
+      matrix = unscale(matrix);
+    }
+    if (!chkSkew.checked) {
+      matrix = unskew(matrix);
+    }
+    if (!chkRotate.checked) {
+      matrix = unrotate(matrix);
+    }
+  }
+  targetNode.style.transform = matrix?.toString();
 }
 
 gestures.dragMove$.subscribe((ev) => {
-  updateUiMatrix(accMatrix ? accMatrix.mulM(ev.matrix) : ev.matrix);
+  updateUiMatrix(accMatrix ? ev.matrix.mulM(accMatrix) : ev.matrix);
 });
 
 gestures.dragEnd$.subscribe((ev) => {
-  accMatrix = accMatrix ? accMatrix.mulM(ev.matrix) : ev.matrix;
+  accMatrix = accMatrix ? ev.matrix.mulM(accMatrix) : ev.matrix;
 });
 
 gestures.dragCancel$.subscribe((ev) => {
@@ -117,25 +125,32 @@ pointers$.subscribe((state) => {
     touchNode.classList.add("touch-handle--grabbing");
   });
   handleNode.addEventListener("pointermove", (event) => {
-    left = event.clientX - dragStartX;
-    top = event.clientY - dragStartY;
-    touchNode.style.left = `${left}px`;
-    touchNode.style.top = `${top}px`;
-
-    if (chkNode.checked) {
-      const moveEvent = new PointerEvent("pointermove", {
-        bubbles: true,
-        cancelable: true,
-        pointerId,
-        pointerType: "touch",
-        clientX: left,
-        clientY: top,
-      });
-      containerNode.dispatchEvent(moveEvent);
+    if (dragging) {
+      left = event.clientX - dragStartX;
+      top = event.clientY - dragStartY;
+      touchNode.style.left = `${left}px`;
+      touchNode.style.top = `${top}px`;
+      if (chkNode.checked) {
+        const moveEvent = new PointerEvent("pointermove", {
+          bubbles: true,
+          cancelable: true,
+          pointerId,
+          pointerType: "touch",
+          clientX: left,
+          clientY: top,
+        });
+        containerNode.dispatchEvent(moveEvent);
+      }
     }
   });
   handleNode.addEventListener("pointerup", (event) => {
     handleNode.releasePointerCapture(event.pointerId);
+    dragging = false;
+    touchNode.classList.remove("touch-handle--grabbing");
+  });
+  handleNode.addEventListener("pointercancel", (event) => {
+    handleNode.releasePointerCapture(event.pointerId);
+    console.log("cancel");
     dragging = false;
     touchNode.classList.remove("touch-handle--grabbing");
   });
